@@ -6,7 +6,19 @@
         {
             "type": "typescript",
             "tsconfig": "tsconfig.json",
-            "problemMatcher": ["$tsc"]
+            "problemMatcher": ["$tsc"],
+            "runOptions": {}
+        },
+        {
+            "type": "typescript",
+            "tsconfig": "tsconfig.json",
+            "option": "watch",
+            "problemMatcher": ["$tsc-watch"]
+        },
+        {
+            "label": "Browserify",
+            "type": "shell",
+            "command": "browserify site.js > assets/js/public.js"
         }
     ]
 }

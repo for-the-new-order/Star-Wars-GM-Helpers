@@ -2,6 +2,8 @@ import * as express from 'express';
 import { AddressInfo } from 'net';
 import * as path from 'path';
 
+const config = require('./config').configuration;
+
 const app = express();
 app.use(express.urlencoded());
 app.use(express.static('assets'));
@@ -14,7 +16,7 @@ app.get('/', function(req, res) {
     res.sendFile(path.join(__dirname + '/index.html'));
 });
 
-app.post('/command', async function(req, res) {
+app.post('/command', function(req, res) {
     // const chatCommand = req.body.chatCommand;
     // let output = '';
     // const messageMock = MakeMessage(chatCommand, chat => (output += chat));
@@ -22,4 +24,5 @@ app.post('/command', async function(req, res) {
     // output = cleanMarkdownCodeBreak(output, OutputType.JSON);
     // output = cleanMarkdownCodeBreak(output, OutputType.YAML);
     // res.send(output);
+    res.send('Hello World!');
 });

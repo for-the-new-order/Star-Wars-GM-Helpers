@@ -1,5 +1,9 @@
 {
     "auth": {
         "token": ""
+    },
+    "discord": {
+        "userId": "",
+        "channelId": ""
     }
 }

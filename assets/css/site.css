@@ -1,0 +1,21 @@
+.level-0,
+.level-trace {
+    color: grey;
+}
+
+.level-1,
+.level-debug {
+    color: lightgrey;
+}
+.level-2,
+.level-info {
+    /* nothing atm */
+}
+.level-3,
+.level-warning {
+    color: orange;
+}
+.level-4,
+.level-error {
+    color: red;
+}
