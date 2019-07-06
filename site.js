@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var config = require('./config').configuration;
 var Main = /** @class */ (function () {
     function Main(commandManager, formAccessor, logger) {
@@ -136,9 +138,9 @@ var discordOptions = config.discord;
 var formAccessor = new FormAccessor(discordOptions, logger);
 var commandManager = new CommandManager(formAccessor, logger);
 var main = new Main(commandManager, formAccessor, logger);
-// $(() => {
-// });
-setTimeout(function () {
-    main.initialize();
-}, 100);
+$(function () {
+    setTimeout(function () {
+        main.initialize();
+    }, 1);
+});
 //# sourceMappingURL=site.js.map

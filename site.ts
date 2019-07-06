@@ -1,3 +1,6 @@
+import { DiscordOptions } from './DiscordOptions';
+import { BatchCommands } from './BatchCommands';
+
 const config = require('./config').configuration;
 
 class Main {
@@ -37,12 +40,6 @@ class CommandManager {
     }
 }
 
-interface BatchCommands {
-    userId: string;
-    channelId: string;
-    chatCommands: string;
-}
-
 class FormAccessor implements BatchCommands {
     private discordUserIdSelector = '#discordUserId';
     private discordChannelIdSelector = '#discordChannelId';
@@ -80,11 +77,6 @@ class FormAccessor implements BatchCommands {
         this.logger.debug(`Setting chatCommands to ${v}`);
         $(this.chatCommandsSelector).val(v);
     }
-}
-
-interface DiscordOptions {
-    userId: string;
-    channelId: string;
 }
 
 class Logger {
@@ -136,8 +128,8 @@ const formAccessor = new FormAccessor(discordOptions, logger);
 const commandManager = new CommandManager(formAccessor, logger);
 const main = new Main(commandManager, formAccessor, logger);
 
-// $(() => {
-// });
-setTimeout(() => {
-    main.initialize();
-}, 100);
+$(() => {
+    setTimeout(() => {
+        main.initialize();
+    }, 1);
+});
