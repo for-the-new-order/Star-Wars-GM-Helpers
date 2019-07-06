@@ -66,7 +66,7 @@ app.post('/command', function (req, res) {
                     return [4 /*yield*/, bot.send(command)];
                 case 1:
                     result = _a.sent();
-                    res.send(result.length + " messages sent");
+                    res.send(result + " messages sent");
                     return [2 /*return*/];
             }
         });
@@ -76,31 +76,25 @@ var MyDiscordBot = /** @class */ (function () {
     function MyDiscordBot() {
     }
     MyDiscordBot.prototype.send = function (command) {
-        var _this = this;
-        return this.enforceClient().then(function () {
-            var channel = _this.client.channels.get(command.channelId);
-            var commands = command.chatCommands.replace('\r', '').split('\n');
-            var results = new Array();
-            commands.forEach(function (message) { return __awaiter(_this, void 0, void 0, function () {
-                var result;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0: return [4 /*yield*/, channel.send(message)];
-                        case 1:
-                            result = _a.sent();
-                            if (Array.isArray(result)) {
-                                result.forEach(function (r) {
-                                    results.push(r);
-                                });
-                            }
-                            else {
-                                results.push(result);
-                            }
-                            return [2 /*return*/];
-                    }
-                });
-            }); });
-            return results;
+        return __awaiter(this, void 0, void 0, function () {
+            var channel, commands;
+            var _this = this;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.enforceClient()];
+                    case 1:
+                        _a.sent();
+                        channel = this.client.channels.get(command.channelId);
+                        commands = command.chatCommands.replace('\r', '').split('\n');
+                        commands.forEach(function (message) { return __awaiter(_this, void 0, void 0, function () {
+                            return __generator(this, function (_a) {
+                                channel.send(message);
+                                return [2 /*return*/];
+                            });
+                        }); });
+                        return [2 /*return*/, commands.length];
+                }
+            });
         });
     };
     MyDiscordBot.prototype.enforceClient = function () {

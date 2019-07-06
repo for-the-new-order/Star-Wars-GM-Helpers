@@ -28,42 +28,20 @@ app.get('/', function(req, res) {
 app.post('/command', async function(req, res) {
     const command = req.body as BatchCommands;
     const bot = new MyDiscordBot();
-    // const chatCommand = req.body.chatCommand;
-    // let output = '';
-    // const messageMock = MakeMessage(chatCommand, chat => (output += chat));
-    // await chatCommandManager.Handle(messageMock.object);
-    // output = cleanMarkdownCodeBreak(output, OutputType.JSON);
-    // output = cleanMarkdownCodeBreak(output, OutputType.YAML);
-    // res.send(output);
-
-    //
-    // TODO: send message through bot
-    //
-    //bot.channels.find('id', discordOptions.channelId).client.user.
-    //bot.user.send(discordOptions);
     var result = await bot.send(command);
-    res.send(`${result.length} messages sent`);
+    res.send(`${result} messages sent`);
 });
 
 class MyDiscordBot {
     private client!: Client;
-    public send(command: BatchCommands): Promise<Message[]> {
-        return this.enforceClient().then(() => {
-            const channel = this.client.channels.get(command.channelId) as TextChannel;
-            const commands = command.chatCommands.replace('\r', '').split('\n');
-            const results = new Array<Message>();
-            commands.forEach(async message => {
-                const result = await channel.send(message);
-                if (Array.isArray(result)) {
-                    (result as Message[]).forEach(r => {
-                        results.push(r);
-                    });
-                } else {
-                    results.push(result as Message);
-                }
-            });
-            return results;
+    public async send(command: BatchCommands): Promise<number> {
+        await this.enforceClient();
+        const channel = this.client.channels.get(command.channelId) as TextChannel;
+        const commands = command.chatCommands.replace('\r', '').split('\n');
+        commands.forEach(async message => {
+            channel.send(message);
         });
+        return commands.length;
     }
 
     private enforceClient(): Promise<string> {
