@@ -1,0 +1,22 @@
+{
+    "name": "discord-bot-batch-command",
+    "version": "1.0.0",
+    "description": "A web UI to send batch Discord bot command",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "Carl-Hugo Marcotte",
+    "dependencies": {
+        "@forevolve/bootstrap-dark": "^1.0.0-alpha.723",
+        "discord.js": "^11.3.2",
+        "express": "^4.16.3"
+    },
+    "devDependencies": {
+        "@types/express": "^4.16.0",
+        "@types/node": "^10.5.8",
+        "merge-config": "^2.0.0",
+        "typemoq": "^2.1.0",
+        "typescript": "^3.0.1"
+    }
+}
