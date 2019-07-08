@@ -37,11 +37,10 @@ class MyDiscordBot {
     public async send(command: BatchCommands): Promise<number> {
         await this.enforceClient();
         const channel = this.client.channels.get(command.channelId) as TextChannel;
-        const commands = command.chatCommands.replace('\r', '').split('\n');
-        commands.forEach(async message => {
+        command.chatCommands.forEach(async message => {
             channel.send(message);
         });
-        return commands.length;
+        return command.chatCommands.length;
     }
 
     private enforceClient(): Promise<string> {

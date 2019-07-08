@@ -70,12 +70,15 @@ class FormAccessor implements BatchCommands {
         $(this.discordChannelIdSelector).val(v);
     }
 
-    public get chatCommands(): string {
-        return $(this.chatCommandsSelector).val() as string;
+    public get chatCommands(): string[] {
+        const raw = $(this.chatCommandsSelector).val() as string;
+        const commands = raw.replace('\r', '').split('\n');
+        return commands;
     }
-    public set chatCommands(v: string) {
+    public set chatCommands(v: string[]) {
         this.logger.debug(`Setting chatCommands to ${v}`);
-        $(this.chatCommandsSelector).val(v);
+        const commands = v.join('\n');
+        $(this.chatCommandsSelector).val(commands);
     }
 }
 
