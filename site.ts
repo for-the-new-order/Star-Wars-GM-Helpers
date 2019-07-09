@@ -107,11 +107,9 @@ class SymbolsFormAccessorFactory {
             data: { index: index }
         }).done(function(data) {
             me.logger.trace(`SymbolsFormAccessorFactory:loaded:${index}`);
-            //const $nextSibling = $('#display-symbols-button-row');
             const $parent = $('#display-symbols-card');
             const $row = $(data);
             $parent.append($row);
-            //$row.insertBefore($nextSibling);
             accessor.load();
         });
         return accessor;
@@ -130,7 +128,34 @@ class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor implements
         this.addRow();
         this.attachSubmitButton();
         this.attachAddRowButton();
+        this.attachSortInitButton();
         this.logger.trace('DisplaySymbolsCommandsFormAccessor loaded');
+    }
+
+    private attachSortInitButton() {
+        const me = this;
+        $('#sortInit').on('click', function(e) {
+            me.logger.trace('sortInit:clicked');
+            e.preventDefault();
+            me.symbolsFormAccessors = me.symbolsFormAccessors.sort(
+                (a, b) =>
+                    me.sortInit(a.successes, b.successes) || me.sortInit(a.advantages, b.advantages) || me.sortInit(a.triumphs, b.triumphs)
+            );
+            const $parent = $('#display-symbols-card');
+            const $rows = $parent.remove('[data-symbols-row]');
+            me.symbolsFormAccessors.forEach(element => {
+                const index = element.getIndex();
+                const selector = `[data-symbols-row="${index}"]`;
+                const $el = $(selector, $rows);
+                $parent.append($el);
+            });
+        });
+    }
+
+    private sortInit(a: number, b: number): number {
+        if (a > b) return -1;
+        if (a < b) return +1;
+        return 0;
     }
 
     private attachAddRowButton() {
@@ -198,10 +223,14 @@ class SymbolsFormAccessor implements Symbols {
         this.attachRemoveButton();
     }
 
+    public getIndex(): number {
+        return this.index;
+    }
+
     private attachRemoveButton() {
         var me = this;
-        $(`[data-index="${this.index}"]`).on('click', function() {
-            $(`.symbols-row-${me.index}`).remove();
+        $(`[data-index="${me.index}"]`).on('click', function() {
+            $(`[data-symbols-row="${me.index}"]`).remove();
         });
     }
 

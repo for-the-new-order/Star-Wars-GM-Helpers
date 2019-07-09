@@ -135,11 +135,9 @@ var SymbolsFormAccessorFactory = /** @class */ (function () {
             data: { index: index }
         }).done(function (data) {
             me.logger.trace("SymbolsFormAccessorFactory:loaded:" + index);
-            //const $nextSibling = $('#display-symbols-button-row');
             var $parent = $('#display-symbols-card');
             var $row = $(data);
             $parent.append($row);
-            //$row.insertBefore($nextSibling);
             accessor.load();
         });
         return accessor;
@@ -160,7 +158,33 @@ var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
         this.addRow();
         this.attachSubmitButton();
         this.attachAddRowButton();
+        this.attachSortInitButton();
         this.logger.trace('DisplaySymbolsCommandsFormAccessor loaded');
+    };
+    DisplaySymbolsCommandsFormAccessor.prototype.attachSortInitButton = function () {
+        var me = this;
+        $('#sortInit').on('click', function (e) {
+            me.logger.trace('sortInit:clicked');
+            e.preventDefault();
+            me.symbolsFormAccessors = me.symbolsFormAccessors.sort(function (a, b) {
+                return me.sortInit(a.successes, b.successes) || me.sortInit(a.advantages, b.advantages) || me.sortInit(a.triumphs, b.triumphs);
+            });
+            var $parent = $('#display-symbols-card');
+            var $rows = $parent.remove('[data-symbols-row]');
+            me.symbolsFormAccessors.forEach(function (element) {
+                var index = element.getIndex();
+                var selector = "[data-symbols-row=\"" + index + "\"]";
+                var $el = $(selector, $rows);
+                $parent.append($el);
+            });
+        });
+    };
+    DisplaySymbolsCommandsFormAccessor.prototype.sortInit = function (a, b) {
+        if (a > b)
+            return -1;
+        if (a < b)
+            return +1;
+        return 0;
     };
     DisplaySymbolsCommandsFormAccessor.prototype.attachAddRowButton = function () {
         var me = this;
@@ -229,10 +253,13 @@ var SymbolsFormAccessor = /** @class */ (function () {
         this.loadDefaults();
         this.attachRemoveButton();
     };
+    SymbolsFormAccessor.prototype.getIndex = function () {
+        return this.index;
+    };
     SymbolsFormAccessor.prototype.attachRemoveButton = function () {
         var me = this;
-        $("[data-index=\"" + this.index + "\"]").on('click', function () {
-            $(".symbols-row-" + me.index).remove();
+        $("[data-index=\"" + me.index + "\"]").on('click', function () {
+            $("[data-symbols-row=\"" + me.index + "\"]").remove();
         });
     };
     SymbolsFormAccessor.prototype.loadDefaults = function () {
