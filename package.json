@@ -17,10 +17,14 @@
     "dependencies": {
         "@forevolve/bootstrap-dark": "^1.0.0-alpha.723",
         "discord.js": "^11.3.2",
-        "express": "^4.16.3"
+        "express": "^4.16.3",
+        "express-handlebars": "^3.1.0",
+        "handlebars": "^4.1.2"
     },
     "devDependencies": {
         "@types/express": "^4.16.0",
+        "@types/express-handlebars": "0.0.32",
+        "@types/handlebars": "^4.1.0",
         "@types/jquery": "^3.3.30",
         "@types/node": "^10.5.8",
         "merge-config": "^2.0.0",

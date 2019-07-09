@@ -39,6 +39,7 @@ var express = require("express");
 var path = require("path");
 var discord_js_1 = require("discord.js");
 var TableRenderer_1 = require("./TableRenderer");
+var exphbs = require("express-handlebars");
 var config = require('./config').configuration;
 // console.info('Initializing the bot');
 // const bot = new Client();
@@ -47,6 +48,8 @@ var config = require('./config').configuration;
 //     console.info(`The bot is connected and logged in as: ${bot.user.username} (${bot.user.id})`);
 // });
 var app = express();
+app.engine('handlebars', exphbs());
+app.set('view engine', 'handlebars');
 app.use(express.urlencoded());
 app.use(express.static('assets'));
 app.use('/bootstrap-dark', express.static('node_modules\\@forevolve\\bootstrap-dark\\dist\\css'));
@@ -55,6 +58,9 @@ var listener = app.listen(8889, function () {
 });
 app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname + '/index.html'));
+});
+app.get('/partials/index-display-symbols-form', function (req, res) {
+    res.render('index-display-symbols-form', { layout: false, index: req.query.index });
 });
 app.post('/commands/batch', function (req, res) {
     return __awaiter(this, void 0, void 0, function () {
@@ -84,7 +90,7 @@ app.post('/commands/display-symbols', function (req, res) {
                     return [4 /*yield*/, bot.sendDisplaySymbolsCommands(command)];
                 case 1:
                     result = _a.sent();
-                    res.send("Symbols sent: " + result);
+                    res.send(result + " symbols sent.");
                     return [2 /*return*/];
             }
         });
@@ -119,16 +125,16 @@ var MyDiscordBot = /** @class */ (function () {
             var channel, message;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.enforceClient()];
+                    case 0:
+                        if (!command.symbols) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this.enforceClient()];
                     case 1:
                         _a.sent();
                         channel = this.client.channels.get(command.channelId);
                         message = this.makeMessage(command);
                         channel.send(message);
-                        return [2 /*return*/, JSON.stringify({
-                                label: command.label,
-                                symbols: command.symbols
-                            })];
+                        return [2 /*return*/, command.symbols.length];
+                    case 2: return [2 /*return*/, 0];
                 }
             });
         });
@@ -142,17 +148,21 @@ var MyDiscordBot = /** @class */ (function () {
         // const failure = guild.emojis.find(this.emojiFinder('failure')).toString();
         // const despair = guild.emojis.find(this.emojiFinder('despair')).toString();
         var table = new TableRenderer_1.TableRenderer();
-        table.setHeader(['Label', 'Advantages', 'Successes', 'Triumphs', 'Threats', 'Failures', 'Despairs']);
+        table.setHeader(['Label', 'Successes', 'Advantages', 'Triumphs', 'Failures', 'Threats', 'Despairs']);
         //table.setHeader(['Label', advantage, success, triumph, threat, failure, despair]);
-        table.addRow([
-            command.label,
-            command.symbols.advantages.toString(),
-            command.symbols.successes.toString(),
-            command.symbols.triumphs.toString(),
-            command.symbols.threats.toString(),
-            command.symbols.failures.toString(),
-            command.symbols.despairs.toString()
-        ]);
+        if (command.symbols) {
+            command.symbols.forEach(function (row) {
+                table.addRow([
+                    row.label,
+                    row.successes.toString(),
+                    row.advantages.toString(),
+                    row.triumphs.toString(),
+                    row.failures.toString(),
+                    row.threats.toString(),
+                    row.despairs.toString()
+                ]);
+            });
+        }
         return table.build();
     };
     // private emojiFinder(name: string): (value: Emoji, key: string, collection: Collection<string, Emoji>) => boolean {

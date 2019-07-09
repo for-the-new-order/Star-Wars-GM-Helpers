@@ -6,6 +6,9 @@ import { DiscordOptions } from './DiscordOptions';
 import { BatchCommands } from './BatchCommands';
 import { DisplaySymbolsCommands } from './DisplaySymbolsCommands';
 import { TableRenderer } from './TableRenderer';
+import * as fs from 'fs';
+import * as Handlebars from 'handlebars';
+import * as exphbs from 'express-handlebars';
 
 const config = require('./config').configuration;
 // console.info('Initializing the bot');
@@ -16,6 +19,8 @@ const config = require('./config').configuration;
 // });
 
 const app = express();
+app.engine('handlebars', exphbs());
+app.set('view engine', 'handlebars');
 app.use(express.urlencoded());
 app.use(express.static('assets'));
 app.use('/bootstrap-dark', express.static('node_modules\\@forevolve\\bootstrap-dark\\dist\\css'));
@@ -25,6 +30,10 @@ const listener = app.listen(8889, function() {
 });
 app.get('/', function(req, res) {
     res.sendFile(path.join(__dirname + '/index.html'));
+});
+
+app.get('/partials/index-display-symbols-form', function(req, res) {
+    res.render('index-display-symbols-form', { layout: false, index: req.query.index });
 });
 
 app.post('/commands/batch', async function(req, res) {
@@ -38,7 +47,7 @@ app.post('/commands/display-symbols', async function(req, res) {
     const command = req.body as DisplaySymbolsCommands;
     const bot = new MyDiscordBot();
     var result = await bot.sendDisplaySymbolsCommands(command);
-    res.send(`Symbols sent: ${result}`);
+    res.send(`${result} symbols sent.`);
 });
 
 class MyDiscordBot {
@@ -52,15 +61,15 @@ class MyDiscordBot {
         return command.chatCommands.length;
     }
 
-    public async sendDisplaySymbolsCommands(command: DisplaySymbolsCommands): Promise<string> {
-        await this.enforceClient();
-        const channel = this.client.channels.get(command.channelId) as TextChannel;
-        const message = this.makeMessage(command);
-        channel.send(message);
-        return JSON.stringify({
-            label: command.label,
-            symbols: command.symbols
-        });
+    public async sendDisplaySymbolsCommands(command: DisplaySymbolsCommands): Promise<number> {
+        if (command.symbols) {
+            await this.enforceClient();
+            const channel = this.client.channels.get(command.channelId) as TextChannel;
+            const message = this.makeMessage(command);
+            channel.send(message);
+            return command.symbols.length;
+        }
+        return 0;
     }
 
     private makeMessage(command: DisplaySymbolsCommands): string {
@@ -72,17 +81,21 @@ class MyDiscordBot {
         // const failure = guild.emojis.find(this.emojiFinder('failure')).toString();
         // const despair = guild.emojis.find(this.emojiFinder('despair')).toString();
         var table = new TableRenderer();
-        table.setHeader(['Label', 'Advantages', 'Successes', 'Triumphs', 'Threats', 'Failures', 'Despairs']);
+        table.setHeader(['Label', 'Successes', 'Advantages', 'Triumphs', 'Failures', 'Threats', 'Despairs']);
         //table.setHeader(['Label', advantage, success, triumph, threat, failure, despair]);
-        table.addRow([
-            command.label,
-            command.symbols.advantages.toString(),
-            command.symbols.successes.toString(),
-            command.symbols.triumphs.toString(),
-            command.symbols.threats.toString(),
-            command.symbols.failures.toString(),
-            command.symbols.despairs.toString()
-        ]);
+        if (command.symbols) {
+            command.symbols.forEach(row => {
+                table.addRow([
+                    row.label,
+                    row.successes.toString(),
+                    row.advantages.toString(),
+                    row.triumphs.toString(),
+                    row.failures.toString(),
+                    row.threats.toString(),
+                    row.despairs.toString()
+                ]);
+            });
+        }
         return table.build();
     }
 

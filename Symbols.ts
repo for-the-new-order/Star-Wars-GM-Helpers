@@ -1,4 +1,5 @@
 export interface Symbols {
+    label: string;
     advantages: number;
     successes: number;
     triumphs: number;

@@ -94,61 +94,100 @@ class BatchCommandsFormAccessor extends BaseCommandsAccessor implements BatchCom
     }
 }
 
+class SymbolsFormAccessorFactory {
+    constructor(private logger: Logger) {}
+
+    public create(index: number): SymbolsFormAccessor {
+        var accessor = new SymbolsFormAccessor(index, this.logger);
+        var me = this;
+        me.logger.trace(`SymbolsFormAccessorFactory:loading:${index}`);
+        $.ajax({
+            url: '/partials/index-display-symbols-form',
+            method: 'GET',
+            data: { index: index }
+        }).done(function(data) {
+            me.logger.trace(`SymbolsFormAccessorFactory:loaded:${index}`);
+            const $nextSibling = $('#display-symbols-button-row');
+            const $row = $(data);
+            $row.insertBefore($nextSibling);
+            accessor.loadDefaults();
+        });
+        return accessor;
+    }
+}
+
 class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor implements DisplaySymbolsCommands {
-    constructor(defaultDiscordOptions: DiscordOptions, logger: Logger, private symbolsFormAccessor: SymbolsFormAccessor) {
+    private symbolsFormAccessors = new Array<SymbolsFormAccessor>();
+
+    constructor(defaultDiscordOptions: DiscordOptions, logger: Logger, private symbolsFormAccessorFactory: SymbolsFormAccessorFactory) {
         super(defaultDiscordOptions, logger);
     }
 
     protected load(): void {
         this.logger.trace('DisplaySymbolsCommandsFormAccessor loading');
-        this.symbolsFormAccessor.loadDefaults();
+        this.addRow();
+        this.attachSubmitButton();
+        this.attachAddRowButton();
+        this.logger.trace('DisplaySymbolsCommandsFormAccessor loaded');
+    }
+    private attachAddRowButton() {
+        const me = this;
+        $('#addSymbolsRow').on('click', function(e) {
+            me.logger.trace('addSymbolsRow:clicked');
+            e.preventDefault();
+            me.addRow();
+        });
+    }
+
+    private addRow(): void {
+        var accessor = this.symbolsFormAccessorFactory.create(this.symbolsFormAccessors.length);
+        this.symbolsFormAccessors.push(accessor);
+        accessor.loadDefaults();
+    }
+
+    private attachSubmitButton() {
         const me = this;
         $('#displaySymbols').on('click', function(e) {
-            me.logger.trace('DisplaySymbolsCommands:clicked');
+            me.logger.trace('displaySymbols:clicked');
             e.preventDefault();
+            const data = {
+                userId: me.userId,
+                channelId: me.channelId,
+                guildId: me.guildId,
+                symbols: new Array<Symbols>()
+            };
+            me.symbolsFormAccessors.forEach(row => {
+                data.symbols.push({
+                    label: row.label,
+                    advantages: row.advantages,
+                    successes: row.successes,
+                    triumphs: row.triumphs,
+                    threats: row.threats,
+                    failures: row.failures,
+                    despairs: row.despairs
+                });
+            });
             $.ajax({
                 url: '/commands/display-symbols',
                 method: 'POST',
-                data: {
-                    userId: me.userId,
-                    channelId: me.channelId,
-                    guildId: me.guildId,
-                    label: me.label,
-                    symbols: {
-                        advantages: me.symbols.advantages,
-                        successes: me.symbols.successes,
-                        triumphs: me.symbols.triumphs,
-                        threats: me.symbols.threats,
-                        failures: me.symbols.failures,
-                        despairs: me.symbols.despairs
-                    }
-                }
+                data: data
             }).done(function(msg) {
-                me.logger.trace('DisplaySymbolsCommands:posted');
+                me.logger.trace('displaySymbols:posted');
                 me.logger.info(msg);
             });
         });
-        this.logger.trace('DisplaySymbolsCommandsFormAccessor loaded');
     }
 
-    public get symbols(): Symbols {
-        return this.symbolsFormAccessor;
+    public get symbols(): Symbols[] {
+        return this.symbolsFormAccessors;
     }
-    public set symbols(v: Symbols) {
+    public set symbols(v: Symbols[]) {
         throw 'NotSupportedException';
-    }
-
-    public get label(): string {
-        return $('#label').val() as string;
-    }
-    public set label(v: string) {
-        this.logger.debug(`Setting label to ${v}`);
-        $('#label').val(v);
     }
 }
 
 class SymbolsFormAccessor implements Symbols {
-    constructor(protected logger: Logger) {}
+    constructor(private index: number, protected logger: Logger) {}
 
     public loadDefaults() {
         this.advantages = 0;
@@ -159,52 +198,60 @@ class SymbolsFormAccessor implements Symbols {
         this.despairs = 0;
     }
 
+    public get label(): string {
+        return $(`#label-${this.index}`).val() as string;
+    }
+    public set label(v: string) {
+        this.logger.debug(`Setting label to ${v}`);
+        $(`#label-${this.index}`).val(v);
+    }
+
     public get advantages(): number {
-        return $('#advantages').val() as number;
+        return $(`#advantages-${this.index}`).val() as number;
     }
     public set advantages(v: number) {
         this.logger.debug(`Setting advantages to ${v}`);
-        $('#advantages').val(v);
+        $(`#advantages-${this.index}`).val(v);
     }
 
     public get successes(): number {
-        return $('#successes').val() as number;
+        return $(`#successes-${this.index}`).val() as number;
     }
     public set successes(v: number) {
         this.logger.debug(`Setting successes to ${v}`);
-        $('#successes').val(v);
+        $(`#successes-${this.index}`).val(v);
     }
 
     public get triumphs(): number {
-        return $('#triumphs').val() as number;
+        return $(`#triumphs-${this.index}`).val() as number;
     }
     public set triumphs(v: number) {
         this.logger.debug(`Setting triumphs to ${v}`);
-        $('#triumphs').val(v);
+        $(`#triumphs-${this.index}`).val(v);
     }
 
     public get threats(): number {
-        return $('#threats').val() as number;
+        return $(`#threats-${this.index}`).val() as number;
     }
     public set threats(v: number) {
         this.logger.debug(`Setting threats to ${v}`);
-        $('#threats').val(v);
+        $(`#threats-${this.index}`).val(v);
     }
 
     public get failures(): number {
-        return $('#failures').val() as number;
+        return $(`#failures-${this.index}`).val() as number;
     }
     public set failures(v: number) {
         this.logger.debug(`Setting failures to ${v}`);
-        $('#failures').val(v);
+        $(`#failures-${this.index}`).val(v);
     }
 
     public get despairs(): number {
-        return $('#despairs').val() as number;
+        return $(`#despairs-${this.index}`).val() as number;
     }
     public set despairs(v: number) {
         this.logger.debug(`Setting despairs to ${v}`);
-        $('#despairs').val(v);
+        $(`#despairs-${this.index}`).val(v);
     }
 }
 
@@ -254,8 +301,8 @@ enum LogLevel {
 const logger = new Logger();
 const discordOptions = config.discord as DiscordOptions;
 const formAccessor = new BatchCommandsFormAccessor(discordOptions, logger);
-const symbolsFormAccessor = new SymbolsFormAccessor(logger);
-const displaySymbolsCommandsFormAccessor = new DisplaySymbolsCommandsFormAccessor(discordOptions, logger, symbolsFormAccessor);
+const symbolsFormAccessorFactory = new SymbolsFormAccessorFactory(logger);
+const displaySymbolsCommandsFormAccessor = new DisplaySymbolsCommandsFormAccessor(discordOptions, logger, symbolsFormAccessorFactory);
 const commands = [formAccessor, displaySymbolsCommandsFormAccessor];
 const main = new Main(commands, logger);
 

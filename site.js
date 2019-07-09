@@ -121,47 +121,92 @@ var BatchCommandsFormAccessor = /** @class */ (function (_super) {
     });
     return BatchCommandsFormAccessor;
 }(BaseCommandsAccessor));
+var SymbolsFormAccessorFactory = /** @class */ (function () {
+    function SymbolsFormAccessorFactory(logger) {
+        this.logger = logger;
+    }
+    SymbolsFormAccessorFactory.prototype.create = function (index) {
+        var accessor = new SymbolsFormAccessor(index, this.logger);
+        var me = this;
+        me.logger.trace("SymbolsFormAccessorFactory:loading:" + index);
+        $.ajax({
+            url: '/partials/index-display-symbols-form',
+            method: 'GET',
+            data: { index: index }
+        }).done(function (data) {
+            me.logger.trace("SymbolsFormAccessorFactory:loaded:" + index);
+            var $nextSibling = $('#display-symbols-button-row');
+            var $row = $(data);
+            $row.insertBefore($nextSibling);
+            accessor.loadDefaults();
+        });
+        return accessor;
+    };
+    return SymbolsFormAccessorFactory;
+}());
 var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
     __extends(DisplaySymbolsCommandsFormAccessor, _super);
-    function DisplaySymbolsCommandsFormAccessor(defaultDiscordOptions, logger, symbolsFormAccessor) {
+    function DisplaySymbolsCommandsFormAccessor(defaultDiscordOptions, logger, symbolsFormAccessorFactory) {
         var _this = _super.call(this, defaultDiscordOptions, logger) || this;
-        _this.symbolsFormAccessor = symbolsFormAccessor;
+        _this.symbolsFormAccessorFactory = symbolsFormAccessorFactory;
+        _this.symbolsFormAccessors = new Array();
         return _this;
     }
     DisplaySymbolsCommandsFormAccessor.prototype.load = function () {
         this.logger.trace('DisplaySymbolsCommandsFormAccessor loading');
-        this.symbolsFormAccessor.loadDefaults();
+        this.addRow();
+        this.attachSubmitButton();
+        this.attachAddRowButton();
+        this.logger.trace('DisplaySymbolsCommandsFormAccessor loaded');
+    };
+    DisplaySymbolsCommandsFormAccessor.prototype.attachAddRowButton = function () {
+        var me = this;
+        $('#addSymbolsRow').on('click', function (e) {
+            me.logger.trace('addSymbolsRow:clicked');
+            e.preventDefault();
+            me.addRow();
+        });
+    };
+    DisplaySymbolsCommandsFormAccessor.prototype.addRow = function () {
+        var accessor = this.symbolsFormAccessorFactory.create(this.symbolsFormAccessors.length);
+        this.symbolsFormAccessors.push(accessor);
+        accessor.loadDefaults();
+    };
+    DisplaySymbolsCommandsFormAccessor.prototype.attachSubmitButton = function () {
         var me = this;
         $('#displaySymbols').on('click', function (e) {
-            me.logger.trace('DisplaySymbolsCommands:clicked');
+            me.logger.trace('displaySymbols:clicked');
             e.preventDefault();
+            var data = {
+                userId: me.userId,
+                channelId: me.channelId,
+                guildId: me.guildId,
+                symbols: new Array()
+            };
+            me.symbolsFormAccessors.forEach(function (row) {
+                data.symbols.push({
+                    label: row.label,
+                    advantages: row.advantages,
+                    successes: row.successes,
+                    triumphs: row.triumphs,
+                    threats: row.threats,
+                    failures: row.failures,
+                    despairs: row.despairs
+                });
+            });
             $.ajax({
                 url: '/commands/display-symbols',
                 method: 'POST',
-                data: {
-                    userId: me.userId,
-                    channelId: me.channelId,
-                    guildId: me.guildId,
-                    label: me.label,
-                    symbols: {
-                        advantages: me.symbols.advantages,
-                        successes: me.symbols.successes,
-                        triumphs: me.symbols.triumphs,
-                        threats: me.symbols.threats,
-                        failures: me.symbols.failures,
-                        despairs: me.symbols.despairs
-                    }
-                }
+                data: data
             }).done(function (msg) {
-                me.logger.trace('DisplaySymbolsCommands:posted');
+                me.logger.trace('displaySymbols:posted');
                 me.logger.info(msg);
             });
         });
-        this.logger.trace('DisplaySymbolsCommandsFormAccessor loaded');
     };
     Object.defineProperty(DisplaySymbolsCommandsFormAccessor.prototype, "symbols", {
         get: function () {
-            return this.symbolsFormAccessor;
+            return this.symbolsFormAccessors;
         },
         set: function (v) {
             throw 'NotSupportedException';
@@ -169,21 +214,11 @@ var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(DisplaySymbolsCommandsFormAccessor.prototype, "label", {
-        get: function () {
-            return $('#label').val();
-        },
-        set: function (v) {
-            this.logger.debug("Setting label to " + v);
-            $('#label').val(v);
-        },
-        enumerable: true,
-        configurable: true
-    });
     return DisplaySymbolsCommandsFormAccessor;
 }(BaseCommandsAccessor));
 var SymbolsFormAccessor = /** @class */ (function () {
-    function SymbolsFormAccessor(logger) {
+    function SymbolsFormAccessor(index, logger) {
+        this.index = index;
         this.logger = logger;
     }
     SymbolsFormAccessor.prototype.loadDefaults = function () {
@@ -194,68 +229,79 @@ var SymbolsFormAccessor = /** @class */ (function () {
         this.failures = 0;
         this.despairs = 0;
     };
+    Object.defineProperty(SymbolsFormAccessor.prototype, "label", {
+        get: function () {
+            return $("#label-" + this.index).val();
+        },
+        set: function (v) {
+            this.logger.debug("Setting label to " + v);
+            $("#label-" + this.index).val(v);
+        },
+        enumerable: true,
+        configurable: true
+    });
     Object.defineProperty(SymbolsFormAccessor.prototype, "advantages", {
         get: function () {
-            return $('#advantages').val();
+            return $("#advantages-" + this.index).val();
         },
         set: function (v) {
             this.logger.debug("Setting advantages to " + v);
-            $('#advantages').val(v);
+            $("#advantages-" + this.index).val(v);
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(SymbolsFormAccessor.prototype, "successes", {
         get: function () {
-            return $('#successes').val();
+            return $("#successes-" + this.index).val();
         },
         set: function (v) {
             this.logger.debug("Setting successes to " + v);
-            $('#successes').val(v);
+            $("#successes-" + this.index).val(v);
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(SymbolsFormAccessor.prototype, "triumphs", {
         get: function () {
-            return $('#triumphs').val();
+            return $("#triumphs-" + this.index).val();
         },
         set: function (v) {
             this.logger.debug("Setting triumphs to " + v);
-            $('#triumphs').val(v);
+            $("#triumphs-" + this.index).val(v);
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(SymbolsFormAccessor.prototype, "threats", {
         get: function () {
-            return $('#threats').val();
+            return $("#threats-" + this.index).val();
         },
         set: function (v) {
             this.logger.debug("Setting threats to " + v);
-            $('#threats').val(v);
+            $("#threats-" + this.index).val(v);
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(SymbolsFormAccessor.prototype, "failures", {
         get: function () {
-            return $('#failures').val();
+            return $("#failures-" + this.index).val();
         },
         set: function (v) {
             this.logger.debug("Setting failures to " + v);
-            $('#failures').val(v);
+            $("#failures-" + this.index).val(v);
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(SymbolsFormAccessor.prototype, "despairs", {
         get: function () {
-            return $('#despairs').val();
+            return $("#despairs-" + this.index).val();
         },
         set: function (v) {
             this.logger.debug("Setting despairs to " + v);
-            $('#despairs').val(v);
+            $("#despairs-" + this.index).val(v);
         },
         enumerable: true,
         configurable: true
@@ -305,8 +351,8 @@ var LogLevel;
 var logger = new Logger();
 var discordOptions = config.discord;
 var formAccessor = new BatchCommandsFormAccessor(discordOptions, logger);
-var symbolsFormAccessor = new SymbolsFormAccessor(logger);
-var displaySymbolsCommandsFormAccessor = new DisplaySymbolsCommandsFormAccessor(discordOptions, logger, symbolsFormAccessor);
+var symbolsFormAccessorFactory = new SymbolsFormAccessorFactory(logger);
+var displaySymbolsCommandsFormAccessor = new DisplaySymbolsCommandsFormAccessor(discordOptions, logger, symbolsFormAccessorFactory);
 var commands = [formAccessor, displaySymbolsCommandsFormAccessor];
 var main = new Main(commands, logger);
 $(function () {
