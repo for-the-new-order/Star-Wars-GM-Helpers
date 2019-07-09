@@ -1,97 +1,266 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 var config = require('./config').configuration;
 var Main = /** @class */ (function () {
-    function Main(commandManager, formAccessor, logger) {
-        this.commandManager = commandManager;
-        this.formAccessor = formAccessor;
+    function Main(commands, logger) {
+        this.commands = commands;
         this.logger = logger;
     }
     Main.prototype.initialize = function () {
         this.logger.trace('Main initializing');
-        this.formAccessor.loadDefaults();
-        this.commandManager.initialize();
+        this.commands.forEach(function (command) {
+            command.initialize();
+        });
         this.logger.trace('Main initialized');
     };
     return Main;
 }());
-var CommandManager = /** @class */ (function () {
-    function CommandManager(batchCommands, logger) {
-        this.batchCommands = batchCommands;
-        this.logger = logger;
-    }
-    CommandManager.prototype.initialize = function () {
-        var myLogger = this.logger;
-        myLogger.trace('CommandManager initializing');
-        var batchCommands = this.batchCommands;
-        $('#submitMessages').on('click', function (e) {
-            logger.trace('Execute commands:clicked');
-            e.preventDefault();
-            $.ajax({
-                url: '/command',
-                method: 'POST',
-                data: {
-                    userId: batchCommands.userId,
-                    channelId: batchCommands.channelId,
-                    chatCommands: batchCommands.chatCommands
-                }
-            }).done(function (msg) {
-                logger.trace('Execute commands:clicked:done');
-                logger.info(msg);
-            });
-        });
-        myLogger.trace('CommandManager initialized');
-    };
-    return CommandManager;
-}());
-var FormAccessor = /** @class */ (function () {
-    function FormAccessor(defaultDiscordOptions, logger) {
+var BaseCommandsAccessor = /** @class */ (function () {
+    function BaseCommandsAccessor(defaultDiscordOptions, logger) {
         this.defaultDiscordOptions = defaultDiscordOptions;
         this.logger = logger;
-        this.discordUserIdSelector = '#discordUserId';
-        this.discordChannelIdSelector = '#discordChannelId';
-        this.chatCommandsSelector = '#chatCommands';
     }
-    FormAccessor.prototype.loadDefaults = function () {
-        this.logger.trace('FormAccessor loading defaults');
+    BaseCommandsAccessor.prototype.initialize = function () {
+        this.logger.trace('BaseCommandsAccessor initializing');
         this.userId = this.defaultDiscordOptions.userId;
         this.channelId = this.defaultDiscordOptions.channelId;
-        this.logger.trace('FormAccessor loaded defaults');
+        this.guildId = this.defaultDiscordOptions.guildId;
+        this.load();
+        this.logger.trace('BaseCommandsAccessor initialized');
     };
-    Object.defineProperty(FormAccessor.prototype, "userId", {
+    Object.defineProperty(BaseCommandsAccessor.prototype, "userId", {
         get: function () {
-            return $(this.discordUserIdSelector).val();
+            return $('#discordUserId').val();
         },
         set: function (v) {
             this.logger.debug("Setting userId to " + v);
-            $(this.discordUserIdSelector).val(v);
+            $('#discordUserId').val(v);
         },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(FormAccessor.prototype, "channelId", {
+    Object.defineProperty(BaseCommandsAccessor.prototype, "channelId", {
         get: function () {
-            return $(this.discordChannelIdSelector).val();
+            return $('#discordChannelId').val();
         },
         set: function (v) {
             this.logger.debug("Setting channelId to " + v);
-            $(this.discordChannelIdSelector).val(v);
+            $('#discordChannelId').val(v);
         },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(FormAccessor.prototype, "chatCommands", {
+    Object.defineProperty(BaseCommandsAccessor.prototype, "guildId", {
         get: function () {
-            return $(this.chatCommandsSelector).val();
+            return $('#discordGuildId').val();
+        },
+        set: function (v) {
+            this.logger.debug("Setting discordGuildId to " + v);
+            $('#discordGuildId').val(v);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    return BaseCommandsAccessor;
+}());
+var BatchCommandsFormAccessor = /** @class */ (function (_super) {
+    __extends(BatchCommandsFormAccessor, _super);
+    function BatchCommandsFormAccessor() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.chatCommandsSelector = '#chatCommands';
+        return _this;
+    }
+    BatchCommandsFormAccessor.prototype.load = function () {
+        this.logger.trace('BatchCommandsFormAccessor loading');
+        var me = this;
+        $('#submitMessages').on('click', function (e) {
+            me.logger.trace('BatchCommands:clicked');
+            e.preventDefault();
+            $.ajax({
+                url: '/commands/batch',
+                method: 'POST',
+                data: {
+                    userId: me.userId,
+                    channelId: me.channelId,
+                    guildId: me.guildId,
+                    chatCommands: me.chatCommands
+                }
+            }).done(function (msg) {
+                me.logger.trace('BatchCommands:posted');
+                me.logger.info(msg);
+            });
+        });
+        this.logger.trace('BatchCommandsFormAccessor loaded');
+    };
+    Object.defineProperty(BatchCommandsFormAccessor.prototype, "chatCommands", {
+        get: function () {
+            var raw = $(this.chatCommandsSelector).val();
+            var commands = raw.replace('\r', '').split('\n');
+            return commands;
         },
         set: function (v) {
             this.logger.debug("Setting chatCommands to " + v);
-            $(this.chatCommandsSelector).val(v);
+            var commands = v.join('\n');
+            $(this.chatCommandsSelector).val(commands);
         },
         enumerable: true,
         configurable: true
     });
-    return FormAccessor;
+    return BatchCommandsFormAccessor;
+}(BaseCommandsAccessor));
+var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
+    __extends(DisplaySymbolsCommandsFormAccessor, _super);
+    function DisplaySymbolsCommandsFormAccessor(defaultDiscordOptions, logger, symbolsFormAccessor) {
+        var _this = _super.call(this, defaultDiscordOptions, logger) || this;
+        _this.symbolsFormAccessor = symbolsFormAccessor;
+        return _this;
+    }
+    DisplaySymbolsCommandsFormAccessor.prototype.load = function () {
+        this.logger.trace('DisplaySymbolsCommandsFormAccessor loading');
+        this.symbolsFormAccessor.loadDefaults();
+        var me = this;
+        $('#displaySymbols').on('click', function (e) {
+            me.logger.trace('DisplaySymbolsCommands:clicked');
+            e.preventDefault();
+            $.ajax({
+                url: '/commands/display-symbols',
+                method: 'POST',
+                data: {
+                    userId: me.userId,
+                    channelId: me.channelId,
+                    guildId: me.guildId,
+                    label: me.label,
+                    symbols: {
+                        advantages: me.symbols.advantages,
+                        successes: me.symbols.successes,
+                        triumphs: me.symbols.triumphs,
+                        threats: me.symbols.threats,
+                        failures: me.symbols.failures,
+                        despairs: me.symbols.despairs
+                    }
+                }
+            }).done(function (msg) {
+                me.logger.trace('DisplaySymbolsCommands:posted');
+                me.logger.info(msg);
+            });
+        });
+        this.logger.trace('DisplaySymbolsCommandsFormAccessor loaded');
+    };
+    Object.defineProperty(DisplaySymbolsCommandsFormAccessor.prototype, "symbols", {
+        get: function () {
+            return this.symbolsFormAccessor;
+        },
+        set: function (v) {
+            throw 'NotSupportedException';
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(DisplaySymbolsCommandsFormAccessor.prototype, "label", {
+        get: function () {
+            return $('#label').val();
+        },
+        set: function (v) {
+            this.logger.debug("Setting label to " + v);
+            $('#label').val(v);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    return DisplaySymbolsCommandsFormAccessor;
+}(BaseCommandsAccessor));
+var SymbolsFormAccessor = /** @class */ (function () {
+    function SymbolsFormAccessor(logger) {
+        this.logger = logger;
+    }
+    SymbolsFormAccessor.prototype.loadDefaults = function () {
+        this.advantages = 0;
+        this.successes = 0;
+        this.triumphs = 0;
+        this.threats = 0;
+        this.failures = 0;
+        this.despairs = 0;
+    };
+    Object.defineProperty(SymbolsFormAccessor.prototype, "advantages", {
+        get: function () {
+            return $('#advantages').val();
+        },
+        set: function (v) {
+            this.logger.debug("Setting advantages to " + v);
+            $('#advantages').val(v);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(SymbolsFormAccessor.prototype, "successes", {
+        get: function () {
+            return $('#successes').val();
+        },
+        set: function (v) {
+            this.logger.debug("Setting successes to " + v);
+            $('#successes').val(v);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(SymbolsFormAccessor.prototype, "triumphs", {
+        get: function () {
+            return $('#triumphs').val();
+        },
+        set: function (v) {
+            this.logger.debug("Setting triumphs to " + v);
+            $('#triumphs').val(v);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(SymbolsFormAccessor.prototype, "threats", {
+        get: function () {
+            return $('#threats').val();
+        },
+        set: function (v) {
+            this.logger.debug("Setting threats to " + v);
+            $('#threats').val(v);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(SymbolsFormAccessor.prototype, "failures", {
+        get: function () {
+            return $('#failures').val();
+        },
+        set: function (v) {
+            this.logger.debug("Setting failures to " + v);
+            $('#failures').val(v);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(SymbolsFormAccessor.prototype, "despairs", {
+        get: function () {
+            return $('#despairs').val();
+        },
+        set: function (v) {
+            this.logger.debug("Setting despairs to " + v);
+            $('#despairs').val(v);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    return SymbolsFormAccessor;
 }());
 var Logger = /** @class */ (function () {
     function Logger(minimumLogLevel) {
@@ -135,12 +304,12 @@ var LogLevel;
 })(LogLevel || (LogLevel = {}));
 var logger = new Logger();
 var discordOptions = config.discord;
-var formAccessor = new FormAccessor(discordOptions, logger);
-var commandManager = new CommandManager(formAccessor, logger);
-var main = new Main(commandManager, formAccessor, logger);
+var formAccessor = new BatchCommandsFormAccessor(discordOptions, logger);
+var symbolsFormAccessor = new SymbolsFormAccessor(logger);
+var displaySymbolsCommandsFormAccessor = new DisplaySymbolsCommandsFormAccessor(discordOptions, logger, symbolsFormAccessor);
+var commands = [formAccessor, displaySymbolsCommandsFormAccessor];
+var main = new Main(commands, logger);
 $(function () {
-    setTimeout(function () {
-        main.initialize();
-    }, 1);
+    main.initialize();
 });
 //# sourceMappingURL=site.js.map

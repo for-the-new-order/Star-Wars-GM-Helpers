@@ -1,5 +1,5 @@
-export interface BatchCommands {
-    userId: string;
-    channelId: string;
+import { BaseCommands } from './BaseCommands';
+
+export interface BatchCommands extends BaseCommands {
     chatCommands: string[];
 }

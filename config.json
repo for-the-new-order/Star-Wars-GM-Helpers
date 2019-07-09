@@ -4,6 +4,7 @@
     },
     "discord": {
         "userId": "",
-        "channelId": ""
+        "channelId": "",
+        "guildId": ""
     }
 }

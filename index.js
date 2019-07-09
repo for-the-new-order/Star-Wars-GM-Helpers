@@ -38,6 +38,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var express = require("express");
 var path = require("path");
 var discord_js_1 = require("discord.js");
+var TableRenderer_1 = require("./TableRenderer");
 var config = require('./config').configuration;
 // console.info('Initializing the bot');
 // const bot = new Client();
@@ -55,7 +56,7 @@ var listener = app.listen(8889, function () {
 app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname + '/index.html'));
 });
-app.post('/command', function (req, res) {
+app.post('/commands/batch', function (req, res) {
     return __awaiter(this, void 0, void 0, function () {
         var command, bot, result;
         return __generator(this, function (_a) {
@@ -63,7 +64,7 @@ app.post('/command', function (req, res) {
                 case 0:
                     command = req.body;
                     bot = new MyDiscordBot();
-                    return [4 /*yield*/, bot.send(command)];
+                    return [4 /*yield*/, bot.sendBatchCommands(command)];
                 case 1:
                     result = _a.sent();
                     res.send(result + " messages sent");
@@ -72,12 +73,29 @@ app.post('/command', function (req, res) {
         });
     });
 });
+app.post('/commands/display-symbols', function (req, res) {
+    return __awaiter(this, void 0, void 0, function () {
+        var command, bot, result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    command = req.body;
+                    bot = new MyDiscordBot();
+                    return [4 /*yield*/, bot.sendDisplaySymbolsCommands(command)];
+                case 1:
+                    result = _a.sent();
+                    res.send("Symbols sent: " + result);
+                    return [2 /*return*/];
+            }
+        });
+    });
+});
 var MyDiscordBot = /** @class */ (function () {
     function MyDiscordBot() {
     }
-    MyDiscordBot.prototype.send = function (command) {
+    MyDiscordBot.prototype.sendBatchCommands = function (command) {
         return __awaiter(this, void 0, void 0, function () {
-            var channel, commands;
+            var channel;
             var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -85,18 +103,61 @@ var MyDiscordBot = /** @class */ (function () {
                     case 1:
                         _a.sent();
                         channel = this.client.channels.get(command.channelId);
-                        commands = command.chatCommands.replace('\r', '').split('\n');
-                        commands.forEach(function (message) { return __awaiter(_this, void 0, void 0, function () {
+                        command.chatCommands.forEach(function (message) { return __awaiter(_this, void 0, void 0, function () {
                             return __generator(this, function (_a) {
                                 channel.send(message);
                                 return [2 /*return*/];
                             });
                         }); });
-                        return [2 /*return*/, commands.length];
+                        return [2 /*return*/, command.chatCommands.length];
                 }
             });
         });
     };
+    MyDiscordBot.prototype.sendDisplaySymbolsCommands = function (command) {
+        return __awaiter(this, void 0, void 0, function () {
+            var channel, message;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.enforceClient()];
+                    case 1:
+                        _a.sent();
+                        channel = this.client.channels.get(command.channelId);
+                        message = this.makeMessage(command);
+                        channel.send(message);
+                        return [2 /*return*/, JSON.stringify({
+                                label: command.label,
+                                symbols: command.symbols
+                            })];
+                }
+            });
+        });
+    };
+    MyDiscordBot.prototype.makeMessage = function (command) {
+        // const guild = this.client.guilds.get(command.guildId);
+        // const advantage = guild.emojis.find(this.emojiFinder('advantage')).toString();
+        // const success = guild.emojis.find(this.emojiFinder('success')).toString();
+        // const triumph = guild.emojis.find(this.emojiFinder('triumph')).toString();
+        // const threat = guild.emojis.find(this.emojiFinder('threat')).toString();
+        // const failure = guild.emojis.find(this.emojiFinder('failure')).toString();
+        // const despair = guild.emojis.find(this.emojiFinder('despair')).toString();
+        var table = new TableRenderer_1.TableRenderer();
+        table.setHeader(['Label', 'Advantages', 'Successes', 'Triumphs', 'Threats', 'Failures', 'Despairs']);
+        //table.setHeader(['Label', advantage, success, triumph, threat, failure, despair]);
+        table.addRow([
+            command.label,
+            command.symbols.advantages.toString(),
+            command.symbols.successes.toString(),
+            command.symbols.triumphs.toString(),
+            command.symbols.threats.toString(),
+            command.symbols.failures.toString(),
+            command.symbols.despairs.toString()
+        ]);
+        return table.build();
+    };
+    // private emojiFinder(name: string): (value: Emoji, key: string, collection: Collection<string, Emoji>) => boolean {
+    //     return x => x.name == name;
+    // }
     MyDiscordBot.prototype.enforceClient = function () {
         if (this.client)
             return Promise.resolve('');
