@@ -159,7 +159,24 @@ var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
         this.attachSubmitButton();
         this.attachAddRowButton();
         this.attachSortInitButton();
+        this.attachSortRaceButton();
         this.logger.trace('DisplaySymbolsCommandsFormAccessor loaded');
+    };
+    DisplaySymbolsCommandsFormAccessor.prototype.attachSortRaceButton = function () {
+        var me = this;
+        $('#sortRace').on('click', function (e) {
+            me.logger.trace('sortRace:clicked');
+            e.preventDefault();
+            me.symbolsFormAccessors = me.symbolsFormAccessors
+                .sort(function (a, b) {
+                return me.sortCompound(a.successes - a.failures, b.successes - b.failures) ||
+                    me.sortCompound(a.advantages - a.threats, b.advantages - b.threats) ||
+                    me.sortCompound(a.triumphs, b.triumphs) ||
+                    me.sortCompound(b.despairs, a.despairs);
+            })
+                .reverse();
+            me.reorderRows();
+        });
     };
     DisplaySymbolsCommandsFormAccessor.prototype.attachSortInitButton = function () {
         var me = this;
@@ -173,14 +190,17 @@ var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
                     me.sortCompound(a.triumphs, b.triumphs);
             })
                 .reverse();
-            var $parent = $('#display-symbols-card');
-            var $rows = $parent.remove('[data-symbols-row]');
-            me.symbolsFormAccessors.forEach(function (element) {
-                var index = element.getIndex();
-                var selector = "[data-symbols-row=\"" + index + "\"]";
-                var $el = $(selector, $rows);
-                $parent.append($el);
-            });
+            me.reorderRows();
+        });
+    };
+    DisplaySymbolsCommandsFormAccessor.prototype.reorderRows = function () {
+        var $parent = $('#display-symbols-card');
+        var $rows = $parent.remove('[data-symbols-row]');
+        this.symbolsFormAccessors.forEach(function (element) {
+            var index = element.getIndex();
+            var selector = "[data-symbols-row=\"" + index + "\"]";
+            var $el = $(selector, $rows);
+            $parent.append($el);
         });
     };
     DisplaySymbolsCommandsFormAccessor.prototype.sortCompound = function (a, b) {

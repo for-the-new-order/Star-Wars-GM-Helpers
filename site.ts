@@ -129,7 +129,26 @@ class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor implements
         this.attachSubmitButton();
         this.attachAddRowButton();
         this.attachSortInitButton();
+        this.attachSortRaceButton();
         this.logger.trace('DisplaySymbolsCommandsFormAccessor loaded');
+    }
+
+    private attachSortRaceButton() {
+        const me = this;
+        $('#sortRace').on('click', function(e) {
+            me.logger.trace('sortRace:clicked');
+            e.preventDefault();
+            me.symbolsFormAccessors = me.symbolsFormAccessors
+                .sort(
+                    (a, b) =>
+                        me.sortCompound(a.successes - a.failures, b.successes - b.failures) ||
+                        me.sortCompound(a.advantages - a.threats, b.advantages - b.threats) ||
+                        me.sortCompound(a.triumphs, b.triumphs) ||
+                        me.sortCompound(b.despairs, a.despairs)
+                )
+                .reverse();
+            me.reorderRows();
+        });
     }
 
     private attachSortInitButton() {
@@ -145,14 +164,18 @@ class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor implements
                         me.sortCompound(a.triumphs, b.triumphs)
                 )
                 .reverse();
-            const $parent = $('#display-symbols-card');
-            const $rows = $parent.remove('[data-symbols-row]');
-            me.symbolsFormAccessors.forEach(element => {
-                const index = element.getIndex();
-                const selector = `[data-symbols-row="${index}"]`;
-                const $el = $(selector, $rows);
-                $parent.append($el);
-            });
+            me.reorderRows();
+        });
+    }
+
+    private reorderRows() {
+        const $parent = $('#display-symbols-card');
+        const $rows = $parent.remove('[data-symbols-row]');
+        this.symbolsFormAccessors.forEach(element => {
+            const index = element.getIndex();
+            const selector = `[data-symbols-row="${index}"]`;
+            const $el = $(selector, $rows);
+            $parent.append($el);
         });
     }
 
