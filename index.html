@@ -69,8 +69,26 @@
                 </div>
                 <div class="col-7">
                     <div class="card">
-                        <div class="card-body">
-                            <div class="row">
+                        <div class="card-body" id="display-symbols-card">
+                            <div class="row" id="display-symbols-button-row">
+                                <div class="col">
+                                    <div class="form-group">
+                                        <button type="button" class="btn btn-outline-success" id="addSymbolsRow">
+                                            Add row
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary" id="sortInit">
+                                            Sort (init order)
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary" id="sortTriumphsFirst">
+                                            Sort (triumphs first)
+                                        </button>
+                                        <button type="button" class="btn btn-outline-primary" id="displaySymbols">
+                                            Display symbols
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row" id="display-symbols-header-row">
                                 <div class="col">
                                     <label for="label" class="col col-form-label">Label</label>
                                 </div>
@@ -99,24 +117,7 @@
                                     <label class="col col-form-label">Actions</label>
                                 </div>
                             </div>
-                            <div class="row" id="display-symbols-button-row">
-                                <div class="col">
-                                    <div class="form-group">
-                                        <button type="button" class="btn btn-outline-primary" id="displaySymbols">
-                                            Display symbols
-                                        </button>
-                                        <button type="button" class="btn btn-outline-success" id="addSymbolsRow">
-                                            Add row
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary" id="sortInit">
-                                            Sort (init order)
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary" id="sortTriumphsFirst">
-                                            Sort (triumphs first)
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+
                         </div>
                     </div>
                 </div>

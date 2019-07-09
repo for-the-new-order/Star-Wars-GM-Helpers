@@ -135,10 +135,12 @@ var SymbolsFormAccessorFactory = /** @class */ (function () {
             data: { index: index }
         }).done(function (data) {
             me.logger.trace("SymbolsFormAccessorFactory:loaded:" + index);
-            var $nextSibling = $('#display-symbols-button-row');
+            //const $nextSibling = $('#display-symbols-button-row');
+            var $parent = $('#display-symbols-card');
             var $row = $(data);
-            $row.insertBefore($nextSibling);
-            accessor.loadDefaults();
+            $parent.append($row);
+            //$row.insertBefore($nextSibling);
+            accessor.load();
         });
         return accessor;
     };
@@ -150,6 +152,7 @@ var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
         var _this = _super.call(this, defaultDiscordOptions, logger) || this;
         _this.symbolsFormAccessorFactory = symbolsFormAccessorFactory;
         _this.symbolsFormAccessors = new Array();
+        _this.rowCount = 0;
         return _this;
     }
     DisplaySymbolsCommandsFormAccessor.prototype.load = function () {
@@ -168,9 +171,9 @@ var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
         });
     };
     DisplaySymbolsCommandsFormAccessor.prototype.addRow = function () {
-        var accessor = this.symbolsFormAccessorFactory.create(this.symbolsFormAccessors.length);
+        var accessor = this.symbolsFormAccessorFactory.create(this.rowCount++);
         this.symbolsFormAccessors.push(accessor);
-        accessor.loadDefaults();
+        accessor.load();
     };
     DisplaySymbolsCommandsFormAccessor.prototype.attachSubmitButton = function () {
         var me = this;
@@ -222,6 +225,16 @@ var SymbolsFormAccessor = /** @class */ (function () {
         this.index = index;
         this.logger = logger;
     }
+    SymbolsFormAccessor.prototype.load = function () {
+        this.loadDefaults();
+        this.attachRemoveButton();
+    };
+    SymbolsFormAccessor.prototype.attachRemoveButton = function () {
+        var me = this;
+        $("[data-index=\"" + this.index + "\"]").on('click', function () {
+            $(".symbols-row-" + me.index).remove();
+        });
+    };
     SymbolsFormAccessor.prototype.loadDefaults = function () {
         this.type = 'NPC';
         this.advantages = 0;

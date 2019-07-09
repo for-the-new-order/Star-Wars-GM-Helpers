@@ -107,10 +107,12 @@ class SymbolsFormAccessorFactory {
             data: { index: index }
         }).done(function(data) {
             me.logger.trace(`SymbolsFormAccessorFactory:loaded:${index}`);
-            const $nextSibling = $('#display-symbols-button-row');
+            //const $nextSibling = $('#display-symbols-button-row');
+            const $parent = $('#display-symbols-card');
             const $row = $(data);
-            $row.insertBefore($nextSibling);
-            accessor.loadDefaults();
+            $parent.append($row);
+            //$row.insertBefore($nextSibling);
+            accessor.load();
         });
         return accessor;
     }
@@ -118,7 +120,7 @@ class SymbolsFormAccessorFactory {
 
 class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor implements DisplaySymbolsCommands {
     private symbolsFormAccessors = new Array<SymbolsFormAccessor>();
-
+    private rowCount = 0;
     constructor(defaultDiscordOptions: DiscordOptions, logger: Logger, private symbolsFormAccessorFactory: SymbolsFormAccessorFactory) {
         super(defaultDiscordOptions, logger);
     }
@@ -130,6 +132,7 @@ class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor implements
         this.attachAddRowButton();
         this.logger.trace('DisplaySymbolsCommandsFormAccessor loaded');
     }
+
     private attachAddRowButton() {
         const me = this;
         $('#addSymbolsRow').on('click', function(e) {
@@ -140,9 +143,9 @@ class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor implements
     }
 
     private addRow(): void {
-        var accessor = this.symbolsFormAccessorFactory.create(this.symbolsFormAccessors.length);
+        var accessor = this.symbolsFormAccessorFactory.create(this.rowCount++);
         this.symbolsFormAccessors.push(accessor);
-        accessor.loadDefaults();
+        accessor.load();
     }
 
     private attachSubmitButton() {
@@ -190,7 +193,19 @@ class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor implements
 class SymbolsFormAccessor implements Symbols {
     constructor(private index: number, protected logger: Logger) {}
 
-    public loadDefaults() {
+    public load() {
+        this.loadDefaults();
+        this.attachRemoveButton();
+    }
+
+    private attachRemoveButton() {
+        var me = this;
+        $(`[data-index="${this.index}"]`).on('click', function() {
+            $(`.symbols-row-${me.index}`).remove();
+        });
+    }
+
+    private loadDefaults() {
         this.type = 'NPC';
         this.advantages = 0;
         this.successes = 0;
