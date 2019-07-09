@@ -50,25 +50,11 @@
             </div>
 
             <div class="row mt-4">
-                <div class="col-4">
+                <div class="col">
                     <div class="card">
-                        <div class="card-body">
-                            <div class="form-group">
-                                <label for="chatCommands" class="col col-form-label">Chat Commands (one per
-                                    line):</label>
-                                <textarea rows="6" type="text" class="form-control" name="chatCommands"
-                                    id="chatCommands"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <button type="submit" class="btn btn-outline-primary" id="submitMessages">
-                                    Execute commands
-                                </button>
-                            </div>
+                        <div class="card-header">
+                            Racing
                         </div>
-                    </div>
-                </div>
-                <div class="col-8">
-                    <div class="card">
                         <div class="card-body" id="display-symbols-card">
                             <div class="row" id="display-symbols-button-row">
                                 <div class="col">
@@ -81,6 +67,10 @@
                                         </button>
                                         <button type="button" class="btn btn-outline-secondary" id="sortRace">
                                             Sort (race)
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary"
+                                            id="applyNegativesSymbols">
+                                            Apply negatives symbols
                                         </button>
                                         <button type="button" class="btn btn-outline-primary" id="displaySymbols">
                                             Display symbols
@@ -103,33 +93,52 @@
                     </div>
                 </div>
             </div>
-    </div>
-    <div class="row mt-4">
-        <div class="col">
-            <div class="card">
-                <div class="card-body">
-                    This is some text within a card body.
+            <div class="row mt-4">
+                <div class="col">
+                    <div class="card">
+                        <div class="card-body">
+                            This is some text within a card body.
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card">
+                        <div class="card-body">
+                            This is some text within a card body.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="chatCommands" class="col col-form-label">Chat Commands (one per
+                                    line):</label>
+                                <textarea rows="6" type="text" class="form-control" name="chatCommands"
+                                    id="chatCommands"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-outline-primary" id="submitMessages">
+                                    Execute commands
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+        <div class="row mt-4">
+            <div class="col">
+                <div class="card">
+                    <div class="card-body" style="max-height: 200px; overflow: auto;">
+                        <ul id="logs"></ul>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col">
-            <div class="card">
-                <div class="card-body">
-                    This is some text within a card body.
-                </div>
-            </div>
-        </div>
-    </div>
-    </form>
-    <div class="row mt-4">
-        <div class="col">
-            <div class="card">
-                <div class="card-body" style="max-height: 200px; overflow: auto;">
-                    <ul id="logs"></ul>
-                </div>
-            </div>
-        </div>
-    </div>
     </div>
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->

@@ -130,7 +130,43 @@ class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor implements
         this.attachAddRowButton();
         this.attachSortInitButton();
         this.attachSortRaceButton();
+        this.attachApplyNegativesSymbols();
         this.logger.trace('DisplaySymbolsCommandsFormAccessor loaded');
+    }
+
+    private attachApplyNegativesSymbols() {
+        const me = this;
+        $('#applyNegativesSymbols').on('click', function(e) {
+            me.logger.trace('applyNegativesSymbols:clicked');
+            e.preventDefault();
+            me.symbolsFormAccessors.forEach(accessor => {
+                let successes = accessor.successes - accessor.failures;
+                let advantages = accessor.advantages - accessor.threats;
+                let failures = 0;
+                let threats = 0;
+                if (successes < 0) {
+                    failures = -successes;
+                    successes = 0;
+                }
+                if (advantages < 0) {
+                    threats = -advantages;
+                    advantages = 0;
+                }
+                accessor.successes = successes;
+                accessor.failures = failures;
+                accessor.advantages = advantages;
+                accessor.threats = threats;
+            });
+            // me.symbolsFormAccessors = me.symbolsFormAccessors
+            //     .sort(
+            //         (a, b) =>
+            //             me.sortCompound(a.successes - a.failures, b.successes - b.failures) ||
+            //             me.sortCompound(a.advantages - a.threats, b.advantages - b.threats) ||
+            //             me.sortCompound(a.triumphs, b.triumphs) ||
+            //             me.sortCompound(b.despairs, a.despairs)
+            //     )
+            //     .reverse();
+        });
     }
 
     private attachSortRaceButton() {

@@ -160,7 +160,42 @@ var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
         this.attachAddRowButton();
         this.attachSortInitButton();
         this.attachSortRaceButton();
+        this.attachApplyNegativesSymbols();
         this.logger.trace('DisplaySymbolsCommandsFormAccessor loaded');
+    };
+    DisplaySymbolsCommandsFormAccessor.prototype.attachApplyNegativesSymbols = function () {
+        var me = this;
+        $('#applyNegativesSymbols').on('click', function (e) {
+            me.logger.trace('applyNegativesSymbols:clicked');
+            e.preventDefault();
+            me.symbolsFormAccessors.forEach(function (accessor) {
+                var successes = accessor.successes - accessor.failures;
+                var advantages = accessor.advantages - accessor.threats;
+                var failures = 0;
+                var threats = 0;
+                if (successes < 0) {
+                    failures = -successes;
+                    successes = 0;
+                }
+                if (advantages < 0) {
+                    threats = -advantages;
+                    advantages = 0;
+                }
+                accessor.successes = successes;
+                accessor.failures = failures;
+                accessor.advantages = advantages;
+                accessor.threats = threats;
+            });
+            // me.symbolsFormAccessors = me.symbolsFormAccessors
+            //     .sort(
+            //         (a, b) =>
+            //             me.sortCompound(a.successes - a.failures, b.successes - b.failures) ||
+            //             me.sortCompound(a.advantages - a.threats, b.advantages - b.threats) ||
+            //             me.sortCompound(a.triumphs, b.triumphs) ||
+            //             me.sortCompound(b.despairs, a.despairs)
+            //     )
+            //     .reverse();
+        });
     };
     DisplaySymbolsCommandsFormAccessor.prototype.attachSortRaceButton = function () {
         var me = this;
