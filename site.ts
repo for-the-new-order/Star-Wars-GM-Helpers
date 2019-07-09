@@ -125,9 +125,9 @@ class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor implements
 
     protected load(): void {
         this.logger.trace('DisplaySymbolsCommandsFormAccessor loading');
-        this.addRow();
+        this.addRacer();
         this.attachSubmitButton();
-        this.attachAddRowButton();
+        this.attachAddRacerButton();
         this.attachSortInitButton();
         this.attachSortRaceButton();
         this.attachResolveNegativesSymbols();
@@ -212,16 +212,16 @@ class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor implements
         return 0;
     }
 
-    private attachAddRowButton() {
+    private attachAddRacerButton() {
         const me = this;
         $('#addSymbolsRow').on('click', function(e) {
             me.logger.trace('addSymbolsRow:clicked');
             e.preventDefault();
-            me.addRow();
+            me.addRacer();
         });
     }
 
-    private addRow(): void {
+    private addRacer(): void {
         var accessor = this.symbolsFormAccessorFactory.create(this.rowCount++);
         this.symbolsFormAccessors.push(accessor);
     }

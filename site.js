@@ -155,9 +155,9 @@ var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
     }
     DisplaySymbolsCommandsFormAccessor.prototype.load = function () {
         this.logger.trace('DisplaySymbolsCommandsFormAccessor loading');
-        this.addRow();
+        this.addRacer();
         this.attachSubmitButton();
-        this.attachAddRowButton();
+        this.attachAddRacerButton();
         this.attachSortInitButton();
         this.attachSortRaceButton();
         this.attachResolveNegativesSymbols();
@@ -236,15 +236,15 @@ var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
             return -1;
         return 0;
     };
-    DisplaySymbolsCommandsFormAccessor.prototype.attachAddRowButton = function () {
+    DisplaySymbolsCommandsFormAccessor.prototype.attachAddRacerButton = function () {
         var me = this;
         $('#addSymbolsRow').on('click', function (e) {
             me.logger.trace('addSymbolsRow:clicked');
             e.preventDefault();
-            me.addRow();
+            me.addRacer();
         });
     };
-    DisplaySymbolsCommandsFormAccessor.prototype.addRow = function () {
+    DisplaySymbolsCommandsFormAccessor.prototype.addRacer = function () {
         var accessor = this.symbolsFormAccessorFactory.create(this.rowCount++);
         this.symbolsFormAccessors.push(accessor);
     };
