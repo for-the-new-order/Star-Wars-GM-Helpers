@@ -159,6 +159,7 @@ class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor implements
             me.symbolsFormAccessors.forEach(row => {
                 data.symbols.push({
                     label: row.label,
+                    type: row.type,
                     advantages: row.advantages,
                     successes: row.successes,
                     triumphs: row.triumphs,
@@ -190,6 +191,7 @@ class SymbolsFormAccessor implements Symbols {
     constructor(private index: number, protected logger: Logger) {}
 
     public loadDefaults() {
+        this.type = 'NPC';
         this.advantages = 0;
         this.successes = 0;
         this.triumphs = 0;
@@ -204,6 +206,14 @@ class SymbolsFormAccessor implements Symbols {
     public set label(v: string) {
         this.logger.debug(`Setting label to ${v}`);
         $(`#label-${this.index}`).val(v);
+    }
+
+    public get type(): string {
+        return $(`#type-${this.index}`).val() as string;
+    }
+    public set type(v: string) {
+        this.logger.debug(`Setting type to ${v}`);
+        $(`#type-${this.index}`).val(v);
     }
 
     public get advantages(): number {

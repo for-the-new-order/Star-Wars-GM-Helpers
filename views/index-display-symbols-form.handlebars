@@ -6,6 +6,11 @@
     </div>
     <div class="col">
         <div class="form-group">
+            <input type="text" id="type-{{index}}" class="form-control">
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-group">
             <input type="text" id="successes-{{index}}" class="form-control">
         </div>
     </div>
@@ -32,6 +37,13 @@
     <div class="col">
         <div class="form-group">
             <input type="text" id="despairs-{{index}}" class="form-control">
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-group">
+            <button type="button" class="btn btn-outline-danger" data-index="{{index}}">
+                X
+            </button>
         </div>
     </div>
 </div>

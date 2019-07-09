@@ -186,6 +186,7 @@ var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
             me.symbolsFormAccessors.forEach(function (row) {
                 data.symbols.push({
                     label: row.label,
+                    type: row.type,
                     advantages: row.advantages,
                     successes: row.successes,
                     triumphs: row.triumphs,
@@ -222,6 +223,7 @@ var SymbolsFormAccessor = /** @class */ (function () {
         this.logger = logger;
     }
     SymbolsFormAccessor.prototype.loadDefaults = function () {
+        this.type = 'NPC';
         this.advantages = 0;
         this.successes = 0;
         this.triumphs = 0;
@@ -236,6 +238,17 @@ var SymbolsFormAccessor = /** @class */ (function () {
         set: function (v) {
             this.logger.debug("Setting label to " + v);
             $("#label-" + this.index).val(v);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(SymbolsFormAccessor.prototype, "type", {
+        get: function () {
+            return $("#type-" + this.index).val();
+        },
+        set: function (v) {
+            this.logger.debug("Setting type to " + v);
+            $("#type-" + this.index).val(v);
         },
         enumerable: true,
         configurable: true

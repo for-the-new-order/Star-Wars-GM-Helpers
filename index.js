@@ -148,12 +148,13 @@ var MyDiscordBot = /** @class */ (function () {
         // const failure = guild.emojis.find(this.emojiFinder('failure')).toString();
         // const despair = guild.emojis.find(this.emojiFinder('despair')).toString();
         var table = new TableRenderer_1.TableRenderer();
-        table.setHeader(['Label', 'Successes', 'Advantages', 'Triumphs', 'Failures', 'Threats', 'Despairs']);
+        table.setHeader(['Label', 'Type', 'Successes', 'Advantages', 'Triumphs', 'Failures', 'Threats', 'Despairs']);
         //table.setHeader(['Label', advantage, success, triumph, threat, failure, despair]);
         if (command.symbols) {
             command.symbols.forEach(function (row) {
                 table.addRow([
                     row.label,
+                    row.type,
                     row.successes.toString(),
                     row.advantages.toString(),
                     row.triumphs.toString(),

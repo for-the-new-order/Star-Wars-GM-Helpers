@@ -50,7 +50,7 @@
             </div>
 
             <div class="row mt-4">
-                <div class="col">
+                <div class="col-5">
                     <div class="card">
                         <div class="card-body">
                             <div class="form-group">
@@ -67,12 +67,15 @@
                         </div>
                     </div>
                 </div>
-                <div class="col">
+                <div class="col-7">
                     <div class="card">
                         <div class="card-body">
                             <div class="row">
                                 <div class="col">
                                     <label for="label" class="col col-form-label">Label</label>
+                                </div>
+                                <div class="col">
+                                    <label class="col col-form-label">Type</label>
                                 </div>
                                 <div class="col">
                                     <label for="successes" class="col col-form-label">Successes</label>
@@ -92,15 +95,24 @@
                                 <div class="col">
                                     <label for="despairs" class="col col-form-label">Despairs</label>
                                 </div>
+                                <div class="col">
+                                    <label class="col col-form-label">Actions</label>
+                                </div>
                             </div>
                             <div class="row" id="display-symbols-button-row">
                                 <div class="col">
                                     <div class="form-group">
-                                        <button type="submit" class="btn btn-outline-primary" id="displaySymbols">
+                                        <button type="button" class="btn btn-outline-primary" id="displaySymbols">
                                             Display symbols
                                         </button>
-                                        <button type="submit" class="btn btn-outline-success" id="addSymbolsRow">
-                                            +
+                                        <button type="button" class="btn btn-outline-success" id="addSymbolsRow">
+                                            Add row
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary" id="sortInit">
+                                            Sort (init order)
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary" id="sortTriumphsFirst">
+                                            Sort (triumphs first)
                                         </button>
                                     </div>
                                 </div>
