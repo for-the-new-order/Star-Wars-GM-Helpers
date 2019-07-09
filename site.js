@@ -160,13 +160,13 @@ var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
         this.attachAddRowButton();
         this.attachSortInitButton();
         this.attachSortRaceButton();
-        this.attachApplyNegativesSymbols();
+        this.attachResolveNegativesSymbols();
         this.logger.trace('DisplaySymbolsCommandsFormAccessor loaded');
     };
-    DisplaySymbolsCommandsFormAccessor.prototype.attachApplyNegativesSymbols = function () {
+    DisplaySymbolsCommandsFormAccessor.prototype.attachResolveNegativesSymbols = function () {
         var me = this;
-        $('#applyNegativesSymbols').on('click', function (e) {
-            me.logger.trace('applyNegativesSymbols:clicked');
+        $('#resolveNegativesSymbols').on('click', function (e) {
+            me.logger.trace('resolveNegativesSymbols:clicked');
             e.preventDefault();
             me.symbolsFormAccessors.forEach(function (accessor) {
                 var successes = accessor.successes - accessor.failures;
@@ -186,15 +186,6 @@ var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
                 accessor.advantages = advantages;
                 accessor.threats = threats;
             });
-            // me.symbolsFormAccessors = me.symbolsFormAccessors
-            //     .sort(
-            //         (a, b) =>
-            //             me.sortCompound(a.successes - a.failures, b.successes - b.failures) ||
-            //             me.sortCompound(a.advantages - a.threats, b.advantages - b.threats) ||
-            //             me.sortCompound(a.triumphs, b.triumphs) ||
-            //             me.sortCompound(b.despairs, a.despairs)
-            //     )
-            //     .reverse();
         });
     };
     DisplaySymbolsCommandsFormAccessor.prototype.attachSortRaceButton = function () {

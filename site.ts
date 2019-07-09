@@ -130,14 +130,14 @@ class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor implements
         this.attachAddRowButton();
         this.attachSortInitButton();
         this.attachSortRaceButton();
-        this.attachApplyNegativesSymbols();
+        this.attachResolveNegativesSymbols();
         this.logger.trace('DisplaySymbolsCommandsFormAccessor loaded');
     }
 
-    private attachApplyNegativesSymbols() {
+    private attachResolveNegativesSymbols() {
         const me = this;
-        $('#applyNegativesSymbols').on('click', function(e) {
-            me.logger.trace('applyNegativesSymbols:clicked');
+        $('#resolveNegativesSymbols').on('click', function(e) {
+            me.logger.trace('resolveNegativesSymbols:clicked');
             e.preventDefault();
             me.symbolsFormAccessors.forEach(accessor => {
                 let successes = accessor.successes - accessor.failures;
@@ -157,15 +157,6 @@ class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor implements
                 accessor.advantages = advantages;
                 accessor.threats = threats;
             });
-            // me.symbolsFormAccessors = me.symbolsFormAccessors
-            //     .sort(
-            //         (a, b) =>
-            //             me.sortCompound(a.successes - a.failures, b.successes - b.failures) ||
-            //             me.sortCompound(a.advantages - a.threats, b.advantages - b.threats) ||
-            //             me.sortCompound(a.triumphs, b.triumphs) ||
-            //             me.sortCompound(b.despairs, a.despairs)
-            //     )
-            //     .reverse();
         });
     }
 
