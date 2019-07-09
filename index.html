@@ -58,36 +58,86 @@
                         <div class="card-body" id="display-symbols-card">
                             <div class="row" id="display-symbols-button-row">
                                 <div class="col">
-                                    <div class="form-group">
-                                        <button type="button" class="btn btn-outline-success" id="addSymbolsRow">
-                                            Add row
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary" id="sortInit">
-                                            Sort (init order)
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary" id="sortRace">
-                                            Sort (race)
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary"
-                                            id="applyNegativesSymbols">
-                                            Apply negatives symbols
-                                        </button>
-                                        <button type="button" class="btn btn-outline-primary" id="displaySymbols">
-                                            Display symbols
-                                        </button>
+                                    <div class="btn-toolbar mb-3">
+                                        <div class="input-group mr-2">
+                                            <div class="input-group-prepend">
+                                                <div class="input-group-text">Race difficulty</div>
+                                            </div>
+                                            <input type="text" class="form-control" id="raceDifficulty">
+                                        </div>
+                                        <div class="btn-group mr-2">
+                                            <button type="button" class="btn btn-outline-success" id="addSymbolsRow">
+                                                Add row
+                                            </button>
+                                        </div>
+                                        <div class="btn-group mr-2">
+                                            <button type="button" class="btn btn-outline-secondary" id="sortInit">
+                                                Sort (init order)
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary" id="sortRace">
+                                                Sort (race)
+                                            </button>
+                                        </div>
+                                        <div class="btn-group mr-2">
+                                            <button type="button" class="btn btn-outline-secondary" id="saveRace">
+                                                Save
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary" id="loadRace">
+                                                Load
+                                            </button>
+                                        </div>
+                                        <div class="btn-group mr-2">
+                                            <button type="button" class="btn btn-outline-secondary"
+                                                id="applyNegativesSymbols">
+                                                Apply all negatives symbols
+                                            </button>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-outline-primary" id="displaySymbols">
+                                                Display symbols
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="row" id="display-symbols-header-row">
-                                <div class="col"><label>Label</label></div>
-                                <div class="col"><label>Type</label></div>
-                                <div class="col"><label>Successes</label></div>
-                                <div class="col"><label>Advantages</label></div>
-                                <div class="col"><label>Triumphs</label></div>
-                                <div class="col"><label>Failures</label></div>
-                                <div class="col"><label>Threats</label></div>
-                                <div class="col"><label>Despairs</label></div>
-                                <div class="col"><label>Actions</label></div>
+                                <div class="col-3 col-racer">
+                                    <div class="row">
+                                        <div class="col-6">Racer</div>
+                                        <div class="col-3">Skill</div>
+                                        <div class="col-3">Type</div>
+                                    </div>
+                                </div>
+                                <div class="col-5 col-vehicle">
+                                    <div class="row">
+                                        <div class="col-4">Vehicle name</div>
+                                        <div class="col-1">Sil.</div>
+                                        <div class="col-2">Speed</div>
+                                        <div class="col-1">Han.</div>
+                                        <div class="col-2">S. Strain</div>
+                                        <div class="col-2">Hull t.</div>
+                                    </div>
+                                </div>
+                                <div class="col-3 col-symbols">
+                                    <div class="row">
+                                        <div class="col"><span title="Success symbol"
+                                                class="genesys-symbol genesys-symbol-success"></span></div>
+                                        <div class="col"><span title="Advantage symbol"
+                                                class="genesys-symbol genesys-symbol-advantage"></span>
+                                        </div>
+                                        <div class="col"><span title="Triumph symbol"
+                                                class="genesys-symbol genesys-symbol-triumph"></span></div>
+                                        <div class="col"><span title="Failure symbol"
+                                                class="genesys-symbol genesys-symbol-failure"></span></div>
+                                        <div class="col"><span title="Threat symbol"
+                                                class="genesys-symbol genesys-symbol-threat"></span></div>
+                                        <div class="col"><span title="Despair symbol"
+                                                class="genesys-symbol genesys-symbol-despair"></span></div>
+                                    </div>
+                                </div>
+                                <div class="col-1 col-actions">
+                                    Actions
+                                </div>
                             </div>
                         </div>
                     </div>

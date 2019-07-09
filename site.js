@@ -271,7 +271,7 @@ var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
             };
             me.symbolsFormAccessors.forEach(function (row) {
                 data.symbols.push({
-                    label: row.label,
+                    racer: row.racer,
                     type: row.type,
                     advantages: row.advantages,
                     successes: row.successes,
@@ -330,13 +330,13 @@ var SymbolsFormAccessor = /** @class */ (function () {
         this.failures = 0;
         this.despairs = 0;
     };
-    Object.defineProperty(SymbolsFormAccessor.prototype, "label", {
+    Object.defineProperty(SymbolsFormAccessor.prototype, "racer", {
         get: function () {
-            return $("#label-" + this.index).val();
+            return $("#racer-" + this.index).val();
         },
         set: function (v) {
-            this.logger.debug("Setting label to " + v);
-            $("#label-" + this.index).val(v);
+            this.logger.debug("Setting racer to " + v);
+            $("#racer-" + this.index).val(v);
         },
         enumerable: true,
         configurable: true

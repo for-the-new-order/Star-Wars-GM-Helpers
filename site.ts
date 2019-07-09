@@ -249,7 +249,7 @@ class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor implements
             };
             me.symbolsFormAccessors.forEach(row => {
                 data.symbols.push({
-                    label: row.label,
+                    racer: row.racer,
                     type: row.type,
                     advantages: row.advantages,
                     successes: row.successes,
@@ -307,12 +307,12 @@ class SymbolsFormAccessor implements Symbols {
         this.despairs = 0;
     }
 
-    public get label(): string {
-        return $(`#label-${this.index}`).val() as string;
+    public get racer(): string {
+        return $(`#racer-${this.index}`).val() as string;
     }
-    public set label(v: string) {
-        this.logger.debug(`Setting label to ${v}`);
-        $(`#label-${this.index}`).val(v);
+    public set racer(v: string) {
+        this.logger.debug(`Setting racer to ${v}`);
+        $(`#racer-${this.index}`).val(v);
     }
 
     public get type(): string {

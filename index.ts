@@ -73,20 +73,12 @@ class MyDiscordBot {
     }
 
     private makeMessage(command: DisplaySymbolsCommands): string {
-        // const guild = this.client.guilds.get(command.guildId);
-        // const advantage = guild.emojis.find(this.emojiFinder('advantage')).toString();
-        // const success = guild.emojis.find(this.emojiFinder('success')).toString();
-        // const triumph = guild.emojis.find(this.emojiFinder('triumph')).toString();
-        // const threat = guild.emojis.find(this.emojiFinder('threat')).toString();
-        // const failure = guild.emojis.find(this.emojiFinder('failure')).toString();
-        // const despair = guild.emojis.find(this.emojiFinder('despair')).toString();
         var table = new TableRenderer();
-        table.setHeader(['Label', 'Type', 'Successes', 'Advantages', 'Triumphs', 'Failures', 'Threats', 'Despairs']);
-        //table.setHeader(['Label', advantage, success, triumph, threat, failure, despair]);
+        table.setHeader(['Racer', 'Type', 'Successes', 'Advantages', 'Triumphs', 'Failures', 'Threats', 'Despairs']);
         if (command.symbols) {
             command.symbols.forEach(row => {
                 table.addRow([
-                    row.label,
+                    row.racer,
                     row.type,
                     row.successes.toString(),
                     row.advantages.toString(),

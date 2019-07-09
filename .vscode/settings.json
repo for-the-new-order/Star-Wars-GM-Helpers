@@ -8,5 +8,9 @@
         }
     },
     "autoimport.filesToScan": "./src/**/*.{ts,tsx}",
-    "typescript.implementationsCodeLens.enabled": true
+    "typescript.implementationsCodeLens.enabled": true,
+    "cSpell.words": [
+        "Chiss",
+        "genesys"
+    ]
 }

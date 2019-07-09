@@ -1,3 +1,88 @@
+@font-face {
+    font-family: 'genesys';
+    src: url('../fonts/genesys.eot?n3ksai');
+    src: url('../fonts/genesys.eot?n3ksai#iefix') format('embedded-opentype'), url('../fonts/genesys.ttf?n3ksai') format('truetype'),
+        url('../fonts/genesys.woff?n3ksai') format('woff'), url('../fonts/genesys.svg?n3ksai#genesys') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.genesys-symbol {
+    font-family: 'genesys';
+}
+
+.genesys-symbol.genesys-symbol-boost {
+    color: #72cddc;
+}
+
+.genesys-symbol.genesys-symbol-boost:before {
+    content: '';
+}
+
+.genesys-symbol.genesys-symbol-ability {
+    color: #41ad49;
+}
+
+.genesys-symbol.genesys-symbol-ability:before {
+    content: '';
+}
+
+.genesys-symbol.genesys-symbol-proficiency {
+    color: #ffe800;
+}
+
+.genesys-symbol.genesys-symbol-proficiency:before {
+    content: '';
+}
+
+.genesys-symbol.genesys-symbol-setback {
+    color: #000;
+}
+
+.genesys-symbol.genesys-symbol-setback:before {
+    content: '';
+}
+
+.genesys-symbol.genesys-symbol-difficulty {
+    color: #6c2a84;
+}
+
+.genesys-symbol.genesys-symbol-difficulty:before {
+    content: '';
+}
+
+.genesys-symbol.genesys-symbol-challenge {
+    color: #7d1821;
+}
+
+.genesys-symbol.genesys-symbol-challenge:before {
+    content: '';
+}
+
+.genesys-symbol.genesys-symbol-advantage:before {
+    content: '';
+}
+
+.genesys-symbol.genesys-symbol-success:before {
+    content: '';
+}
+
+.genesys-symbol.genesys-symbol-triumph:before {
+    content: '';
+}
+
+.genesys-symbol.genesys-symbol-threat:before {
+    content: '';
+}
+
+.genesys-symbol.genesys-symbol-failure:before {
+    content: '';
+}
+
+.genesys-symbol.genesys-symbol-despair:before {
+    content: '';
+}
+
 .level-0,
 .level-trace {
     color: grey;
@@ -18,4 +103,20 @@
 .level-4,
 .level-error {
     color: red;
+}
+
+.form-group-double-box input {
+    width: 40%;
+    display: inline-block;
+}
+
+#display-symbols-header-row {
+    text-align: center;
+}
+
+.col-racer,
+.col-vehicle,
+.col-symbols,
+.col-actions {
+    border: 1px solid #333;
 }

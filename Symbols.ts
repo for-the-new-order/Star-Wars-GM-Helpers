@@ -1,5 +1,5 @@
 export interface Symbols {
-    label: string;
+    racer: string;
     type: string;
     advantages: number;
     successes: number;
