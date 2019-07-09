@@ -166,9 +166,13 @@ var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
         $('#sortInit').on('click', function (e) {
             me.logger.trace('sortInit:clicked');
             e.preventDefault();
-            me.symbolsFormAccessors = me.symbolsFormAccessors.sort(function (a, b) {
-                return me.sortInit(a.successes, b.successes) || me.sortInit(a.advantages, b.advantages) || me.sortInit(a.triumphs, b.triumphs);
-            });
+            me.symbolsFormAccessors = me.symbolsFormAccessors
+                .sort(function (a, b) {
+                return me.sortCompound(a.successes, b.successes) ||
+                    me.sortCompound(a.advantages, b.advantages) ||
+                    me.sortCompound(a.triumphs, b.triumphs);
+            })
+                .reverse();
             var $parent = $('#display-symbols-card');
             var $rows = $parent.remove('[data-symbols-row]');
             me.symbolsFormAccessors.forEach(function (element) {
@@ -179,11 +183,11 @@ var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
             });
         });
     };
-    DisplaySymbolsCommandsFormAccessor.prototype.sortInit = function (a, b) {
+    DisplaySymbolsCommandsFormAccessor.prototype.sortCompound = function (a, b) {
         if (a > b)
-            return -1;
-        if (a < b)
             return +1;
+        if (a < b)
+            return -1;
         return 0;
     };
     DisplaySymbolsCommandsFormAccessor.prototype.attachAddRowButton = function () {

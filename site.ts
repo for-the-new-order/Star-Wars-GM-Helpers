@@ -137,10 +137,14 @@ class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor implements
         $('#sortInit').on('click', function(e) {
             me.logger.trace('sortInit:clicked');
             e.preventDefault();
-            me.symbolsFormAccessors = me.symbolsFormAccessors.sort(
-                (a, b) =>
-                    me.sortInit(a.successes, b.successes) || me.sortInit(a.advantages, b.advantages) || me.sortInit(a.triumphs, b.triumphs)
-            );
+            me.symbolsFormAccessors = me.symbolsFormAccessors
+                .sort(
+                    (a, b) =>
+                        me.sortCompound(a.successes, b.successes) ||
+                        me.sortCompound(a.advantages, b.advantages) ||
+                        me.sortCompound(a.triumphs, b.triumphs)
+                )
+                .reverse();
             const $parent = $('#display-symbols-card');
             const $rows = $parent.remove('[data-symbols-row]');
             me.symbolsFormAccessors.forEach(element => {
@@ -152,9 +156,9 @@ class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor implements
         });
     }
 
-    private sortInit(a: number, b: number): number {
-        if (a > b) return -1;
-        if (a < b) return +1;
+    private sortCompound(a: number, b: number): number {
+        if (a > b) return +1;
+        if (a < b) return -1;
         return 0;
     }
 
