@@ -224,7 +224,6 @@ class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor implements
     private addRow(): void {
         var accessor = this.symbolsFormAccessorFactory.create(this.rowCount++);
         this.symbolsFormAccessors.push(accessor);
-        accessor.load();
     }
 
     private attachSubmitButton() {

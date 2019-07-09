@@ -247,7 +247,6 @@ var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
     DisplaySymbolsCommandsFormAccessor.prototype.addRow = function () {
         var accessor = this.symbolsFormAccessorFactory.create(this.rowCount++);
         this.symbolsFormAccessors.push(accessor);
-        accessor.load();
     };
     DisplaySymbolsCommandsFormAccessor.prototype.attachSubmitButton = function () {
         var me = this;
