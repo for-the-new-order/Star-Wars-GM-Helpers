@@ -3,11 +3,16 @@ import { BatchCommands } from './BatchCommands';
 import { BaseCommands } from './BaseCommands';
 import { DisplaySymbolsCommands } from './DisplaySymbolsCommands';
 import { Symbols } from './Symbols';
+import { LoggerFactory } from './Logging/LoggerFactory';
+import { Logger } from './Logging/Logger';
 
 const config = require('./config').configuration;
 
 class Main {
-    constructor(private commands: BaseCommands[], private logger: Logger) {}
+    private logger: Logger<Main>;
+    constructor(private commands: BaseCommands[], loggerFactory: LoggerFactory) {
+        this.logger = loggerFactory.create(Main);
+    }
     public initialize() {
         this.logger.trace('Main initializing');
         this.commands.forEach(command => {
@@ -17,8 +22,8 @@ class Main {
     }
 }
 
-abstract class BaseCommandsAccessor implements BaseCommands {
-    constructor(protected defaultDiscordOptions: DiscordOptions, protected logger: Logger) {}
+abstract class BaseCommandsAccessor<T extends BaseCommands> implements BaseCommands {
+    constructor(protected defaultDiscordOptions: DiscordOptions, protected logger: Logger<T>) {}
 
     public initialize(): void {
         this.logger.trace('BaseCommandsAccessor initializing');
@@ -56,9 +61,12 @@ abstract class BaseCommandsAccessor implements BaseCommands {
     }
 }
 
-class BatchCommandsFormAccessor extends BaseCommandsAccessor implements BatchCommands {
+class BatchCommandsFormAccessor extends BaseCommandsAccessor<BatchCommandsFormAccessor> implements BatchCommands {
     private chatCommandsSelector = '#chatCommands';
 
+    constructor(defaultDiscordOptions: DiscordOptions, loggerFactory: LoggerFactory) {
+        super(defaultDiscordOptions, loggerFactory.create(BatchCommandsFormAccessor));
+    }
     protected load(): void {
         this.logger.trace('BatchCommandsFormAccessor loading');
         const me = this;
@@ -95,10 +103,13 @@ class BatchCommandsFormAccessor extends BaseCommandsAccessor implements BatchCom
 }
 
 class SymbolsFormAccessorFactory {
-    constructor(private logger: Logger) {}
+    private logger: Logger<SymbolsFormAccessorFactory>;
+    constructor(private loggerFactory: LoggerFactory) {
+        this.logger = loggerFactory.create(SymbolsFormAccessorFactory);
+    }
 
     public create(index: number): SymbolsFormAccessor {
-        var accessor = new SymbolsFormAccessor(index, this.logger);
+        var accessor = new SymbolsFormAccessor(index, this.loggerFactory);
         var me = this;
         me.logger.trace(`SymbolsFormAccessorFactory:loading:${index}`);
         $.ajax({
@@ -116,11 +127,16 @@ class SymbolsFormAccessorFactory {
     }
 }
 
-class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor implements DisplaySymbolsCommands {
+class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor<DisplaySymbolsCommandsFormAccessor>
+    implements DisplaySymbolsCommands {
     private symbolsFormAccessors = new Array<SymbolsFormAccessor>();
     private rowCount = 0;
-    constructor(defaultDiscordOptions: DiscordOptions, logger: Logger, private symbolsFormAccessorFactory: SymbolsFormAccessorFactory) {
-        super(defaultDiscordOptions, logger);
+    constructor(
+        defaultDiscordOptions: DiscordOptions,
+        loggerFactory: LoggerFactory,
+        private symbolsFormAccessorFactory: SymbolsFormAccessorFactory
+    ) {
+        super(defaultDiscordOptions, loggerFactory.create(DisplaySymbolsCommandsFormAccessor));
     }
 
     protected load(): void {
@@ -269,7 +285,10 @@ class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor implements
 }
 
 class SymbolsFormAccessor implements Symbols {
-    constructor(private index: number, protected logger: Logger) {}
+    protected logger: Logger<SymbolsFormAccessor>;
+    constructor(private index: number, loggerFactory: LoggerFactory) {
+        this.logger = loggerFactory.create(SymbolsFormAccessor);
+    }
 
     public load() {
         this.loadDefaults();
@@ -362,56 +381,17 @@ class SymbolsFormAccessor implements Symbols {
     }
 }
 
-class Logger {
-    private logsSelector = '#logs';
-    constructor(private minimumLogLevel: LogLevel = LogLevel.trace) {}
-
-    public warning(value: string): void {
-        this.prepend(value, LogLevel.warning);
-    }
-
-    public error(value: string): void {
-        this.prepend(value, LogLevel.error);
-    }
-
-    public info(value: string): void {
-        this.prepend(value, LogLevel.info);
-    }
-
-    public trace(value: string): void {
-        this.prepend(value, LogLevel.trace);
-    }
-
-    public debug(value: string): void {
-        this.prepend(value, LogLevel.debug);
-    }
-
-    private prepend(value: string, logLevel: LogLevel) {
-        if (this.minimumLogLevel > logLevel) {
-            return;
-        }
-        var $li = $('<li>');
-        $li.addClass(`level-${logLevel}`);
-        $li.html(value);
-        $li.prependTo(this.logsSelector);
-    }
-}
-
-enum LogLevel {
-    trace,
-    debug,
-    info,
-    warning,
-    error
-}
-
-const logger = new Logger();
+const loggerFactory = new LoggerFactory();
 const discordOptions = config.discord as DiscordOptions;
-const formAccessor = new BatchCommandsFormAccessor(discordOptions, logger);
-const symbolsFormAccessorFactory = new SymbolsFormAccessorFactory(logger);
-const displaySymbolsCommandsFormAccessor = new DisplaySymbolsCommandsFormAccessor(discordOptions, logger, symbolsFormAccessorFactory);
+const formAccessor = new BatchCommandsFormAccessor(discordOptions, loggerFactory);
+const symbolsFormAccessorFactory = new SymbolsFormAccessorFactory(loggerFactory);
+const displaySymbolsCommandsFormAccessor = new DisplaySymbolsCommandsFormAccessor(
+    discordOptions,
+    loggerFactory,
+    symbolsFormAccessorFactory
+);
 const commands = [formAccessor, displaySymbolsCommandsFormAccessor];
-const main = new Main(commands, logger);
+const main = new Main(commands, loggerFactory);
 
 $(() => {
     main.initialize();

@@ -5,7 +5,7 @@ var __extends = (this && this.__extends) || (function () {
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
             function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
         return extendStatics(d, b);
-    };
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -13,11 +13,12 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+var LoggerFactory_1 = require("./Logging/LoggerFactory");
 var config = require('./config').configuration;
 var Main = /** @class */ (function () {
-    function Main(commands, logger) {
+    function Main(commands, loggerFactory) {
         this.commands = commands;
-        this.logger = logger;
+        this.logger = loggerFactory.create(Main);
     }
     Main.prototype.initialize = function () {
         this.logger.trace('Main initializing');
@@ -78,8 +79,8 @@ var BaseCommandsAccessor = /** @class */ (function () {
 }());
 var BatchCommandsFormAccessor = /** @class */ (function (_super) {
     __extends(BatchCommandsFormAccessor, _super);
-    function BatchCommandsFormAccessor() {
-        var _this = _super !== null && _super.apply(this, arguments) || this;
+    function BatchCommandsFormAccessor(defaultDiscordOptions, loggerFactory) {
+        var _this = _super.call(this, defaultDiscordOptions, loggerFactory.create(BatchCommandsFormAccessor)) || this;
         _this.chatCommandsSelector = '#chatCommands';
         return _this;
     }
@@ -122,11 +123,12 @@ var BatchCommandsFormAccessor = /** @class */ (function (_super) {
     return BatchCommandsFormAccessor;
 }(BaseCommandsAccessor));
 var SymbolsFormAccessorFactory = /** @class */ (function () {
-    function SymbolsFormAccessorFactory(logger) {
-        this.logger = logger;
+    function SymbolsFormAccessorFactory(loggerFactory) {
+        this.loggerFactory = loggerFactory;
+        this.logger = loggerFactory.create(SymbolsFormAccessorFactory);
     }
     SymbolsFormAccessorFactory.prototype.create = function (index) {
-        var accessor = new SymbolsFormAccessor(index, this.logger);
+        var accessor = new SymbolsFormAccessor(index, this.loggerFactory);
         var me = this;
         me.logger.trace("SymbolsFormAccessorFactory:loading:" + index);
         $.ajax({
@@ -146,8 +148,8 @@ var SymbolsFormAccessorFactory = /** @class */ (function () {
 }());
 var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
     __extends(DisplaySymbolsCommandsFormAccessor, _super);
-    function DisplaySymbolsCommandsFormAccessor(defaultDiscordOptions, logger, symbolsFormAccessorFactory) {
-        var _this = _super.call(this, defaultDiscordOptions, logger) || this;
+    function DisplaySymbolsCommandsFormAccessor(defaultDiscordOptions, loggerFactory, symbolsFormAccessorFactory) {
+        var _this = _super.call(this, defaultDiscordOptions, loggerFactory.create(DisplaySymbolsCommandsFormAccessor)) || this;
         _this.symbolsFormAccessorFactory = symbolsFormAccessorFactory;
         _this.symbolsFormAccessors = new Array();
         _this.rowCount = 0;
@@ -294,9 +296,9 @@ var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
     return DisplaySymbolsCommandsFormAccessor;
 }(BaseCommandsAccessor));
 var SymbolsFormAccessor = /** @class */ (function () {
-    function SymbolsFormAccessor(index, logger) {
+    function SymbolsFormAccessor(index, loggerFactory) {
         this.index = index;
-        this.logger = logger;
+        this.logger = loggerFactory.create(SymbolsFormAccessor);
     }
     SymbolsFormAccessor.prototype.load = function () {
         this.loadDefaults();
@@ -410,53 +412,13 @@ var SymbolsFormAccessor = /** @class */ (function () {
     });
     return SymbolsFormAccessor;
 }());
-var Logger = /** @class */ (function () {
-    function Logger(minimumLogLevel) {
-        if (minimumLogLevel === void 0) { minimumLogLevel = LogLevel.trace; }
-        this.minimumLogLevel = minimumLogLevel;
-        this.logsSelector = '#logs';
-    }
-    Logger.prototype.warning = function (value) {
-        this.prepend(value, LogLevel.warning);
-    };
-    Logger.prototype.error = function (value) {
-        this.prepend(value, LogLevel.error);
-    };
-    Logger.prototype.info = function (value) {
-        this.prepend(value, LogLevel.info);
-    };
-    Logger.prototype.trace = function (value) {
-        this.prepend(value, LogLevel.trace);
-    };
-    Logger.prototype.debug = function (value) {
-        this.prepend(value, LogLevel.debug);
-    };
-    Logger.prototype.prepend = function (value, logLevel) {
-        if (this.minimumLogLevel > logLevel) {
-            return;
-        }
-        var $li = $('<li>');
-        $li.addClass("level-" + logLevel);
-        $li.html(value);
-        $li.prependTo(this.logsSelector);
-    };
-    return Logger;
-}());
-var LogLevel;
-(function (LogLevel) {
-    LogLevel[LogLevel["trace"] = 0] = "trace";
-    LogLevel[LogLevel["debug"] = 1] = "debug";
-    LogLevel[LogLevel["info"] = 2] = "info";
-    LogLevel[LogLevel["warning"] = 3] = "warning";
-    LogLevel[LogLevel["error"] = 4] = "error";
-})(LogLevel || (LogLevel = {}));
-var logger = new Logger();
+var loggerFactory = new LoggerFactory_1.LoggerFactory();
 var discordOptions = config.discord;
-var formAccessor = new BatchCommandsFormAccessor(discordOptions, logger);
-var symbolsFormAccessorFactory = new SymbolsFormAccessorFactory(logger);
-var displaySymbolsCommandsFormAccessor = new DisplaySymbolsCommandsFormAccessor(discordOptions, logger, symbolsFormAccessorFactory);
+var formAccessor = new BatchCommandsFormAccessor(discordOptions, loggerFactory);
+var symbolsFormAccessorFactory = new SymbolsFormAccessorFactory(loggerFactory);
+var displaySymbolsCommandsFormAccessor = new DisplaySymbolsCommandsFormAccessor(discordOptions, loggerFactory, symbolsFormAccessorFactory);
 var commands = [formAccessor, displaySymbolsCommandsFormAccessor];
-var main = new Main(commands, logger);
+var main = new Main(commands, loggerFactory);
 $(function () {
     main.initialize();
 });
