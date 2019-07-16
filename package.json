@@ -1,5 +1,5 @@
 {
-    "name": "discord-bot-batch-command",
+    "name": "star-wars-gm-helpers",
     "version": "1.0.0",
     "description": "A web UI to send batch Discord bot command",
     "main": "src/server.js",
