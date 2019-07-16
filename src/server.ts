@@ -1,14 +1,14 @@
+import { BatchCommand } from './BatchCommand';
 import * as express from 'express';
 import { AddressInfo } from 'net';
 import { Client, Message, TextChannel, Emoji, Collection } from 'discord.js';
-import { DiscordOptions } from './DiscordOptions';
-import { BatchCommands } from './BatchCommands';
-import { DisplaySymbolsCommands } from './DisplaySymbolsCommands';
+import { DiscordInfo } from './DiscordInfo';
 import { TableRenderer } from './TableRenderer';
 import * as exphbs from 'express-handlebars';
 import { config } from './config';
+import { RacePart, RacerCommand } from './RacerCommand';
 
-const discordOptions = config.discord as DiscordOptions;
+const discordInfo = config.discord as DiscordInfo;
 const app = express();
 app.engine(
     'hbs',
@@ -40,7 +40,7 @@ app.get('/race', function(req, res) {
             commandIdentifier: 'RacerCommand',
             laps: [new RacePart('Part 1'), new RacePart('Part 2'), new RacePart('Part 3'), new RacePart('Part 4'), new RacePart('Part 5')],
             racers: [defaultRacer()],
-            discordOptions
+            discordInfo
         }
     });
 });
@@ -63,16 +63,16 @@ app.get('/partials/index-display-symbols-form', function(req, res) {
 //
 // Commands
 app.post('/commands/batch', async function(req, res) {
-    const command = req.body as BatchCommands;
-    const discordOptions = req.body as DiscordOptions;
-    const bot = new MyDiscordBot(discordOptions);
+    const command = req.body as BatchCommand;
+    const discordInfo = req.body as DiscordInfo;
+    const bot = new MyDiscordBot(discordInfo);
     var result = await bot.sendBatchCommands(command);
     res.send(`${result} messages sent`);
 });
 app.post('/commands/display-symbols', async function(req, res) {
-    const command = req.body as DisplaySymbolsCommands;
-    const discordOptions = req.body as DiscordOptions;
-    const bot = new MyDiscordBot(discordOptions);
+    const command = req.body as RacerCommand;
+    const discordInfo = req.body as DiscordInfo;
+    const bot = new MyDiscordBot(discordInfo);
     var result = await bot.sendDisplaySymbolsCommands(command);
     res.send(`${result} symbols sent.`);
 });
@@ -91,6 +91,7 @@ function defaultRacer() {
         maxSystemStrain: 0,
         currentHull: 0,
         maxHull: 0,
+        part: 0,
         lap: 0,
         successes: 0,
         advantages: 0,
@@ -101,38 +102,34 @@ function defaultRacer() {
     };
 }
 
-class RacePart {
-    constructor(public name: string, public difficulty: string = 'pp', public distance: number = 20) {}
-}
-
 class MyDiscordBot {
     private client!: Client;
-    constructor(private discordOptions: DiscordOptions) {}
-    public async sendBatchCommands(command: BatchCommands): Promise<number> {
+    constructor(private discordInfo: DiscordInfo) {}
+    public async sendBatchCommands(command: BatchCommand): Promise<number> {
         await this.enforceClient();
-        const channel = this.client.channels.get(this.discordOptions.channelId) as TextChannel;
+        const channel = this.client.channels.get(this.discordInfo.channelId) as TextChannel;
         command.chatCommands.forEach(async message => {
             channel.send(message);
         });
         return command.chatCommands.length;
     }
 
-    public async sendDisplaySymbolsCommands(command: DisplaySymbolsCommands): Promise<number> {
-        if (command.symbols) {
+    public async sendDisplaySymbolsCommands(command: RacerCommand): Promise<number> {
+        if (command.racers) {
             await this.enforceClient();
-            const channel = this.client.channels.get(this.discordOptions.channelId) as TextChannel;
+            const channel = this.client.channels.get(this.discordInfo.channelId) as TextChannel;
             const message = this.makeMessage(command);
             channel.send(message);
-            return command.symbols.length;
+            return command.racers.length;
         }
         return 0;
     }
 
-    private makeMessage(command: DisplaySymbolsCommands): string {
+    private makeMessage(command: RacerCommand): string {
         var table = new TableRenderer();
         table.setHeader(['Racer', 'Type', 'Successes', 'Advantages', 'Triumphs', 'Failures', 'Threats', 'Despairs']);
-        if (command.symbols) {
-            command.symbols.forEach(row => {
+        if (command.racers) {
+            command.racers.forEach(row => {
                 table.addRow([
                     row.racer,
                     row.type,

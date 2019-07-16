@@ -64,5 +64,5 @@ typings/
 config.secrets.json
 
 # Generated JS files
-src/*.js
-src/*.js.map
+src/**/*.js
+src/**/*.js.map
