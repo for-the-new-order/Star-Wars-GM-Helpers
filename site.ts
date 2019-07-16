@@ -23,19 +23,19 @@ class Main {
 }
 
 abstract class BaseCommandsAccessor<T extends BaseCommands> implements BaseCommands {
-    constructor(protected defaultDiscordOptions: DiscordOptions, protected logger: Logger<T>) {}
+    constructor(protected logger: Logger<T>) {}
 
-    public initialize(): void {
-        this.logger.trace('BaseCommandsAccessor initializing');
-        this.userId = this.defaultDiscordOptions.userId;
-        this.channelId = this.defaultDiscordOptions.channelId;
-        this.guildId = this.defaultDiscordOptions.guildId;
-        this.load();
-        this.logger.trace('BaseCommandsAccessor initialized');
-    }
+    public abstract initialize(): void;
+}
 
-    protected abstract load(): void;
+interface DiscordInfo {
+    userId: string;
+    channelId: string;
+    guildId: string;
+}
 
+class DiscordAccessor implements DiscordInfo {
+    constructor(private logger: Logger<DiscordAccessor>) {}
     public get userId(): string {
         return $('#discordUserId').val() as string;
     }
@@ -64,10 +64,10 @@ abstract class BaseCommandsAccessor<T extends BaseCommands> implements BaseComma
 class BatchCommandsFormAccessor extends BaseCommandsAccessor<BatchCommandsFormAccessor> implements BatchCommands {
     private chatCommandsSelector = '#chatCommands';
 
-    constructor(defaultDiscordOptions: DiscordOptions, loggerFactory: LoggerFactory) {
-        super(defaultDiscordOptions, loggerFactory.create(BatchCommandsFormAccessor));
+    constructor(loggerFactory: LoggerFactory, private discordInfo: DiscordInfo) {
+        super(loggerFactory.create(BatchCommandsFormAccessor));
     }
-    protected load(): void {
+    public initialize(): void {
         this.logger.trace('BatchCommandsFormAccessor loading');
         const me = this;
         $('#submitMessages').on('click', function(e) {
@@ -77,9 +77,9 @@ class BatchCommandsFormAccessor extends BaseCommandsAccessor<BatchCommandsFormAc
                 url: '/commands/batch',
                 method: 'POST',
                 data: {
-                    userId: me.userId,
-                    channelId: me.channelId,
-                    guildId: me.guildId,
+                    userId: me.discordInfo.userId,
+                    channelId: me.discordInfo.channelId,
+                    guildId: me.discordInfo.guildId,
                     chatCommands: me.chatCommands
                 }
             }).done(function(msg) {
@@ -102,10 +102,10 @@ class BatchCommandsFormAccessor extends BaseCommandsAccessor<BatchCommandsFormAc
     }
 }
 
-class SymbolsFormAccessorFactory {
-    private logger: Logger<SymbolsFormAccessorFactory>;
+class RacerFormAccessorFactory {
+    private logger: Logger<RacerFormAccessorFactory>;
     constructor(private loggerFactory: LoggerFactory) {
-        this.logger = loggerFactory.create(SymbolsFormAccessorFactory);
+        this.logger = loggerFactory.create(RacerFormAccessorFactory);
     }
 
     public create(index: number): SymbolsFormAccessor {
@@ -121,33 +121,51 @@ class SymbolsFormAccessorFactory {
             const $parent = $('#display-symbols-card');
             const $row = $(data);
             $parent.append($row);
-            accessor.load();
         });
         return accessor;
     }
+
+    public attach(): Array<SymbolsFormAccessor> {
+        const accessors = new Array<SymbolsFormAccessor>();
+        var me = this;
+        $('[data-symbols-row]').each(function() {
+            const $row = $(this);
+            const index = parseInt($row.attr('data-symbols-row'));
+            me.logger.trace(`SymbolsFormAccessorFactory:attaching:${index}`);
+            const accessor = new SymbolsFormAccessor(index, me.loggerFactory);
+            accessors.push(accessor);
+        });
+        return accessors;
+    }
 }
 
-class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor<DisplaySymbolsCommandsFormAccessor>
-    implements DisplaySymbolsCommands {
-    private symbolsFormAccessors = new Array<SymbolsFormAccessor>();
+class DisplayRacerCommandsFormAccessor extends BaseCommandsAccessor<DisplayRacerCommandsFormAccessor> implements DisplaySymbolsCommands {
+    private racerFormAccessors = new Array<SymbolsFormAccessor>();
     private rowCount = 0;
     constructor(
-        defaultDiscordOptions: DiscordOptions,
         loggerFactory: LoggerFactory,
-        private symbolsFormAccessorFactory: SymbolsFormAccessorFactory
+        private symbolsFormAccessorFactory: RacerFormAccessorFactory,
+        private discordInfo: DiscordInfo
     ) {
-        super(defaultDiscordOptions, loggerFactory.create(DisplaySymbolsCommandsFormAccessor));
+        super(loggerFactory.create(DisplayRacerCommandsFormAccessor));
     }
 
-    protected load(): void {
+    public initialize(): void {
         this.logger.trace('DisplaySymbolsCommandsFormAccessor loading');
-        this.addRacer();
         this.attachSubmitButton();
         this.attachAddRacerButton();
         this.attachSortInitButton();
         this.attachSortRaceButton();
         this.attachResolveNegativesSymbols();
+        this.attachRemoveRowButtons();
+        this.attachExistingRacer();
         this.logger.trace('DisplaySymbolsCommandsFormAccessor loaded');
+    }
+    private attachRemoveRowButtons() {
+        $(document).on('click', '[data-index]', function() {
+            var index = $(this).attr('data-index');
+            $(`[data-symbols-row="${index}"]`).remove();
+        });
     }
 
     private attachResolveNegativesSymbols() {
@@ -155,7 +173,7 @@ class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor<DisplaySym
         $('#resolveNegativesSymbols').on('click', function(e) {
             me.logger.trace('resolveNegativesSymbols:clicked');
             e.preventDefault();
-            me.symbolsFormAccessors.forEach(accessor => {
+            me.racerFormAccessors.forEach(accessor => {
                 let successes = accessor.successes - accessor.failures;
                 let advantages = accessor.advantages - accessor.threats;
                 let failures = 0;
@@ -181,7 +199,7 @@ class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor<DisplaySym
         $('#sortRace').on('click', function(e) {
             me.logger.trace('sortRace:clicked');
             e.preventDefault();
-            me.symbolsFormAccessors = me.symbolsFormAccessors
+            me.racerFormAccessors = me.racerFormAccessors
                 .sort(
                     (a, b) =>
                         me.sortCompound(a.successes - a.failures, b.successes - b.failures) ||
@@ -199,7 +217,7 @@ class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor<DisplaySym
         $('#sortInit').on('click', function(e) {
             me.logger.trace('sortInit:clicked');
             e.preventDefault();
-            me.symbolsFormAccessors = me.symbolsFormAccessors
+            me.racerFormAccessors = me.racerFormAccessors
                 .sort(
                     (a, b) =>
                         me.sortCompound(a.successes, b.successes) ||
@@ -214,7 +232,7 @@ class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor<DisplaySym
     private reorderRows() {
         const $parent = $('#display-symbols-card');
         const $rows = $parent.remove('[data-symbols-row]');
-        this.symbolsFormAccessors.forEach(element => {
+        this.racerFormAccessors.forEach(element => {
             const index = element.getIndex();
             const selector = `[data-symbols-row="${index}"]`;
             const $el = $(selector, $rows);
@@ -231,15 +249,21 @@ class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor<DisplaySym
     private attachAddRacerButton() {
         const me = this;
         $('#addSymbolsRow').on('click', function(e) {
-            me.logger.trace('addSymbolsRow:clicked');
+            me.logger.trace('addRacer:clicked');
             e.preventDefault();
             me.addRacer();
         });
     }
 
+    private attachExistingRacer() {
+        var accessors = this.symbolsFormAccessorFactory.attach();
+        accessors.forEach(accessor => this.racerFormAccessors.push(accessor));
+        this.rowCount = accessors.length;
+    }
+
     private addRacer(): void {
         var accessor = this.symbolsFormAccessorFactory.create(this.rowCount++);
-        this.symbolsFormAccessors.push(accessor);
+        this.racerFormAccessors.push(accessor);
     }
 
     private attachSubmitButton() {
@@ -248,12 +272,12 @@ class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor<DisplaySym
             me.logger.trace('displaySymbols:clicked');
             e.preventDefault();
             const data = {
-                userId: me.userId,
-                channelId: me.channelId,
-                guildId: me.guildId,
+                userId: me.discordInfo.userId,
+                channelId: me.discordInfo.channelId,
+                guildId: me.discordInfo.guildId,
                 symbols: new Array<Symbols>()
             };
-            me.symbolsFormAccessors.forEach(row => {
+            me.racerFormAccessors.forEach(row => {
                 data.symbols.push({
                     racer: row.racer,
                     type: row.type,
@@ -277,7 +301,7 @@ class DisplaySymbolsCommandsFormAccessor extends BaseCommandsAccessor<DisplaySym
     }
 
     public get symbols(): Symbols[] {
-        return this.symbolsFormAccessors;
+        return this.racerFormAccessors;
     }
     public set symbols(v: Symbols[]) {
         throw 'NotSupportedException';
@@ -290,30 +314,8 @@ class SymbolsFormAccessor implements Symbols {
         this.logger = loggerFactory.create(SymbolsFormAccessor);
     }
 
-    public load() {
-        this.loadDefaults();
-        this.attachRemoveButton();
-    }
-
     public getIndex(): number {
         return this.index;
-    }
-
-    private attachRemoveButton() {
-        var me = this;
-        $(`[data-index="${me.index}"]`).on('click', function() {
-            $(`[data-symbols-row="${me.index}"]`).remove();
-        });
-    }
-
-    private loadDefaults() {
-        this.type = 'NPC';
-        this.advantages = 0;
-        this.successes = 0;
-        this.triumphs = 0;
-        this.threats = 0;
-        this.failures = 0;
-        this.despairs = 0;
     }
 
     public get racer(): string {
@@ -382,14 +384,10 @@ class SymbolsFormAccessor implements Symbols {
 }
 
 const loggerFactory = new LoggerFactory();
-const discordOptions = config.discord as DiscordOptions;
-const formAccessor = new BatchCommandsFormAccessor(discordOptions, loggerFactory);
-const symbolsFormAccessorFactory = new SymbolsFormAccessorFactory(loggerFactory);
-const displaySymbolsCommandsFormAccessor = new DisplaySymbolsCommandsFormAccessor(
-    discordOptions,
-    loggerFactory,
-    symbolsFormAccessorFactory
-);
+const discordInfo = new DiscordAccessor(loggerFactory.create(DiscordAccessor));
+const formAccessor = new BatchCommandsFormAccessor(loggerFactory, discordInfo);
+const symbolsFormAccessorFactory = new RacerFormAccessorFactory(loggerFactory);
+const displaySymbolsCommandsFormAccessor = new DisplayRacerCommandsFormAccessor(loggerFactory, symbolsFormAccessorFactory, discordInfo);
 const commands = [formAccessor, displaySymbolsCommandsFormAccessor];
 const main = new Main(commands, loggerFactory);
 

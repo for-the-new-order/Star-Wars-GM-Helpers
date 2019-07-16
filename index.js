@@ -36,40 +36,61 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var express = require("express");
-var path = require("path");
 var discord_js_1 = require("discord.js");
 var TableRenderer_1 = require("./TableRenderer");
 var exphbs = require("express-handlebars");
 var config = require('./config').configuration;
-// console.info('Initializing the bot');
-// const bot = new Client();
-// bot.login(config.auth.token);
-// bot.on('ready', function(evt: any) {
-//     console.info(`The bot is connected and logged in as: ${bot.user.username} (${bot.user.id})`);
-// });
+var discordOptions = config.discord;
 var app = express();
-app.engine('handlebars', exphbs());
-app.set('view engine', 'handlebars');
+app.engine('hbs', exphbs({
+    extname: 'hbs',
+    defaultLayout: 'default',
+    layoutsDir: __dirname + '/views/layouts/',
+    partialsDir: __dirname + '/views/partials/'
+}));
+app.set('view engine', 'hbs');
 app.use(express.urlencoded());
 app.use(express.static('assets'));
 app.use('/bootstrap-dark', express.static('node_modules\\@forevolve\\bootstrap-dark\\dist\\css'));
+app.use('/font-awesome', express.static('node_modules\\@fortawesome\\fontawesome-free'));
 var listener = app.listen(8889, function () {
     console.log('Listening on port ' + listener.address().port);
 });
+//
+// Pages
 app.get('/', function (req, res) {
-    res.sendFile(path.join(__dirname + '/index.html'));
+    res.render('home', {});
 });
+app.get('/race', function (req, res) {
+    res.render('race', {
+        model: {
+            laps: [new RacePart('Part 1'), new RacePart('Part 2'), new RacePart('Part 3'), new RacePart('Part 4'), new RacePart('Part 5')],
+            racers: [defaultRacer()],
+            discordOptions: discordOptions
+        }
+    });
+});
+app.get('/batchCommands', function (req, res) {
+    res.render('batchCommands');
+});
+//
+// Query/Ajax/partial rendering
 app.get('/partials/index-display-symbols-form', function (req, res) {
-    res.render('index-display-symbols-form', { layout: false, index: req.query.index });
+    var racer = defaultRacer();
+    var model = Object.assign({ layout: false, index: req.query.index }, racer);
+    res.render('partials/racePilotRow', model);
 });
+//
+// Commands
 app.post('/commands/batch', function (req, res) {
     return __awaiter(this, void 0, void 0, function () {
-        var command, bot, result;
+        var command, discordOptions, bot, result;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     command = req.body;
-                    bot = new MyDiscordBot();
+                    discordOptions = req.body;
+                    bot = new MyDiscordBot(discordOptions);
                     return [4 /*yield*/, bot.sendBatchCommands(command)];
                 case 1:
                     result = _a.sent();
@@ -81,12 +102,13 @@ app.post('/commands/batch', function (req, res) {
 });
 app.post('/commands/display-symbols', function (req, res) {
     return __awaiter(this, void 0, void 0, function () {
-        var command, bot, result;
+        var command, discordOptions, bot, result;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     command = req.body;
-                    bot = new MyDiscordBot();
+                    discordOptions = req.body;
+                    bot = new MyDiscordBot(discordOptions);
                     return [4 /*yield*/, bot.sendDisplaySymbolsCommands(command)];
                 case 1:
                     result = _a.sent();
@@ -96,8 +118,42 @@ app.post('/commands/display-symbols', function (req, res) {
         });
     });
 });
+function defaultRacer() {
+    return {
+        racer: '',
+        skill: '',
+        type: 'NPC',
+        vehicle: '',
+        silhouette: 0,
+        currentSpeed: 0,
+        maxSpeed: 0,
+        handling: 0,
+        currentSystemStrain: 0,
+        maxSystemStrain: 0,
+        currentHull: 0,
+        maxHull: 0,
+        lap: 0,
+        successes: 0,
+        advantages: 0,
+        triumphs: 0,
+        failures: 0,
+        threats: 0,
+        despairs: 0
+    };
+}
+var RacePart = /** @class */ (function () {
+    function RacePart(name, difficulty, distance) {
+        if (difficulty === void 0) { difficulty = 'pp'; }
+        if (distance === void 0) { distance = 20; }
+        this.name = name;
+        this.difficulty = difficulty;
+        this.distance = distance;
+    }
+    return RacePart;
+}());
 var MyDiscordBot = /** @class */ (function () {
-    function MyDiscordBot() {
+    function MyDiscordBot(discordOptions) {
+        this.discordOptions = discordOptions;
     }
     MyDiscordBot.prototype.sendBatchCommands = function (command) {
         return __awaiter(this, void 0, void 0, function () {
@@ -108,7 +164,7 @@ var MyDiscordBot = /** @class */ (function () {
                     case 0: return [4 /*yield*/, this.enforceClient()];
                     case 1:
                         _a.sent();
-                        channel = this.client.channels.get(command.channelId);
+                        channel = this.client.channels.get(this.discordOptions.channelId);
                         command.chatCommands.forEach(function (message) { return __awaiter(_this, void 0, void 0, function () {
                             return __generator(this, function (_a) {
                                 channel.send(message);
@@ -130,7 +186,7 @@ var MyDiscordBot = /** @class */ (function () {
                         return [4 /*yield*/, this.enforceClient()];
                     case 1:
                         _a.sent();
-                        channel = this.client.channels.get(command.channelId);
+                        channel = this.client.channels.get(this.discordOptions.channelId);
                         message = this.makeMessage(command);
                         channel.send(message);
                         return [2 /*return*/, command.symbols.length];

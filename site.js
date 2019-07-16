@@ -5,7 +5,7 @@ var __extends = (this && this.__extends) || (function () {
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
             function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
         return extendStatics(d, b);
-    }
+    };
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -30,19 +30,16 @@ var Main = /** @class */ (function () {
     return Main;
 }());
 var BaseCommandsAccessor = /** @class */ (function () {
-    function BaseCommandsAccessor(defaultDiscordOptions, logger) {
-        this.defaultDiscordOptions = defaultDiscordOptions;
+    function BaseCommandsAccessor(logger) {
         this.logger = logger;
     }
-    BaseCommandsAccessor.prototype.initialize = function () {
-        this.logger.trace('BaseCommandsAccessor initializing');
-        this.userId = this.defaultDiscordOptions.userId;
-        this.channelId = this.defaultDiscordOptions.channelId;
-        this.guildId = this.defaultDiscordOptions.guildId;
-        this.load();
-        this.logger.trace('BaseCommandsAccessor initialized');
-    };
-    Object.defineProperty(BaseCommandsAccessor.prototype, "userId", {
+    return BaseCommandsAccessor;
+}());
+var DiscordAccessor = /** @class */ (function () {
+    function DiscordAccessor(logger) {
+        this.logger = logger;
+    }
+    Object.defineProperty(DiscordAccessor.prototype, "userId", {
         get: function () {
             return $('#discordUserId').val();
         },
@@ -53,7 +50,7 @@ var BaseCommandsAccessor = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(BaseCommandsAccessor.prototype, "channelId", {
+    Object.defineProperty(DiscordAccessor.prototype, "channelId", {
         get: function () {
             return $('#discordChannelId').val();
         },
@@ -64,7 +61,7 @@ var BaseCommandsAccessor = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(BaseCommandsAccessor.prototype, "guildId", {
+    Object.defineProperty(DiscordAccessor.prototype, "guildId", {
         get: function () {
             return $('#discordGuildId').val();
         },
@@ -75,16 +72,17 @@ var BaseCommandsAccessor = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    return BaseCommandsAccessor;
+    return DiscordAccessor;
 }());
 var BatchCommandsFormAccessor = /** @class */ (function (_super) {
     __extends(BatchCommandsFormAccessor, _super);
-    function BatchCommandsFormAccessor(defaultDiscordOptions, loggerFactory) {
-        var _this = _super.call(this, defaultDiscordOptions, loggerFactory.create(BatchCommandsFormAccessor)) || this;
+    function BatchCommandsFormAccessor(loggerFactory, discordInfo) {
+        var _this = _super.call(this, loggerFactory.create(BatchCommandsFormAccessor)) || this;
+        _this.discordInfo = discordInfo;
         _this.chatCommandsSelector = '#chatCommands';
         return _this;
     }
-    BatchCommandsFormAccessor.prototype.load = function () {
+    BatchCommandsFormAccessor.prototype.initialize = function () {
         this.logger.trace('BatchCommandsFormAccessor loading');
         var me = this;
         $('#submitMessages').on('click', function (e) {
@@ -94,9 +92,9 @@ var BatchCommandsFormAccessor = /** @class */ (function (_super) {
                 url: '/commands/batch',
                 method: 'POST',
                 data: {
-                    userId: me.userId,
-                    channelId: me.channelId,
-                    guildId: me.guildId,
+                    userId: me.discordInfo.userId,
+                    channelId: me.discordInfo.channelId,
+                    guildId: me.discordInfo.guildId,
                     chatCommands: me.chatCommands
                 }
             }).done(function (msg) {
@@ -122,12 +120,12 @@ var BatchCommandsFormAccessor = /** @class */ (function (_super) {
     });
     return BatchCommandsFormAccessor;
 }(BaseCommandsAccessor));
-var SymbolsFormAccessorFactory = /** @class */ (function () {
-    function SymbolsFormAccessorFactory(loggerFactory) {
+var RacerFormAccessorFactory = /** @class */ (function () {
+    function RacerFormAccessorFactory(loggerFactory) {
         this.loggerFactory = loggerFactory;
-        this.logger = loggerFactory.create(SymbolsFormAccessorFactory);
+        this.logger = loggerFactory.create(RacerFormAccessorFactory);
     }
-    SymbolsFormAccessorFactory.prototype.create = function (index) {
+    RacerFormAccessorFactory.prototype.create = function (index) {
         var accessor = new SymbolsFormAccessor(index, this.loggerFactory);
         var me = this;
         me.logger.trace("SymbolsFormAccessorFactory:loading:" + index);
@@ -140,37 +138,56 @@ var SymbolsFormAccessorFactory = /** @class */ (function () {
             var $parent = $('#display-symbols-card');
             var $row = $(data);
             $parent.append($row);
-            accessor.load();
         });
         return accessor;
     };
-    return SymbolsFormAccessorFactory;
+    RacerFormAccessorFactory.prototype.attach = function () {
+        var accessors = new Array();
+        var me = this;
+        $('[data-symbols-row]').each(function () {
+            var $row = $(this);
+            var index = parseInt($row.attr('data-symbols-row'));
+            me.logger.trace("SymbolsFormAccessorFactory:attaching:" + index);
+            var accessor = new SymbolsFormAccessor(index, me.loggerFactory);
+            accessors.push(accessor);
+        });
+        return accessors;
+    };
+    return RacerFormAccessorFactory;
 }());
-var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
-    __extends(DisplaySymbolsCommandsFormAccessor, _super);
-    function DisplaySymbolsCommandsFormAccessor(defaultDiscordOptions, loggerFactory, symbolsFormAccessorFactory) {
-        var _this = _super.call(this, defaultDiscordOptions, loggerFactory.create(DisplaySymbolsCommandsFormAccessor)) || this;
+var DisplayRacerCommandsFormAccessor = /** @class */ (function (_super) {
+    __extends(DisplayRacerCommandsFormAccessor, _super);
+    function DisplayRacerCommandsFormAccessor(loggerFactory, symbolsFormAccessorFactory, discordInfo) {
+        var _this = _super.call(this, loggerFactory.create(DisplayRacerCommandsFormAccessor)) || this;
         _this.symbolsFormAccessorFactory = symbolsFormAccessorFactory;
-        _this.symbolsFormAccessors = new Array();
+        _this.discordInfo = discordInfo;
+        _this.racerFormAccessors = new Array();
         _this.rowCount = 0;
         return _this;
     }
-    DisplaySymbolsCommandsFormAccessor.prototype.load = function () {
+    DisplayRacerCommandsFormAccessor.prototype.initialize = function () {
         this.logger.trace('DisplaySymbolsCommandsFormAccessor loading');
-        this.addRacer();
         this.attachSubmitButton();
         this.attachAddRacerButton();
         this.attachSortInitButton();
         this.attachSortRaceButton();
         this.attachResolveNegativesSymbols();
+        this.attachRemoveRowButtons();
+        this.attachExistingRacer();
         this.logger.trace('DisplaySymbolsCommandsFormAccessor loaded');
     };
-    DisplaySymbolsCommandsFormAccessor.prototype.attachResolveNegativesSymbols = function () {
+    DisplayRacerCommandsFormAccessor.prototype.attachRemoveRowButtons = function () {
+        $(document).on('click', '[data-index]', function () {
+            var index = $(this).attr('data-index');
+            $("[data-symbols-row=\"" + index + "\"]").remove();
+        });
+    };
+    DisplayRacerCommandsFormAccessor.prototype.attachResolveNegativesSymbols = function () {
         var me = this;
         $('#resolveNegativesSymbols').on('click', function (e) {
             me.logger.trace('resolveNegativesSymbols:clicked');
             e.preventDefault();
-            me.symbolsFormAccessors.forEach(function (accessor) {
+            me.racerFormAccessors.forEach(function (accessor) {
                 var successes = accessor.successes - accessor.failures;
                 var advantages = accessor.advantages - accessor.threats;
                 var failures = 0;
@@ -190,12 +207,12 @@ var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
             });
         });
     };
-    DisplaySymbolsCommandsFormAccessor.prototype.attachSortRaceButton = function () {
+    DisplayRacerCommandsFormAccessor.prototype.attachSortRaceButton = function () {
         var me = this;
         $('#sortRace').on('click', function (e) {
             me.logger.trace('sortRace:clicked');
             e.preventDefault();
-            me.symbolsFormAccessors = me.symbolsFormAccessors
+            me.racerFormAccessors = me.racerFormAccessors
                 .sort(function (a, b) {
                 return me.sortCompound(a.successes - a.failures, b.successes - b.failures) ||
                     me.sortCompound(a.advantages - a.threats, b.advantages - b.threats) ||
@@ -206,12 +223,12 @@ var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
             me.reorderRows();
         });
     };
-    DisplaySymbolsCommandsFormAccessor.prototype.attachSortInitButton = function () {
+    DisplayRacerCommandsFormAccessor.prototype.attachSortInitButton = function () {
         var me = this;
         $('#sortInit').on('click', function (e) {
             me.logger.trace('sortInit:clicked');
             e.preventDefault();
-            me.symbolsFormAccessors = me.symbolsFormAccessors
+            me.racerFormAccessors = me.racerFormAccessors
                 .sort(function (a, b) {
                 return me.sortCompound(a.successes, b.successes) ||
                     me.sortCompound(a.advantages, b.advantages) ||
@@ -221,47 +238,53 @@ var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
             me.reorderRows();
         });
     };
-    DisplaySymbolsCommandsFormAccessor.prototype.reorderRows = function () {
+    DisplayRacerCommandsFormAccessor.prototype.reorderRows = function () {
         var $parent = $('#display-symbols-card');
         var $rows = $parent.remove('[data-symbols-row]');
-        this.symbolsFormAccessors.forEach(function (element) {
+        this.racerFormAccessors.forEach(function (element) {
             var index = element.getIndex();
             var selector = "[data-symbols-row=\"" + index + "\"]";
             var $el = $(selector, $rows);
             $parent.append($el);
         });
     };
-    DisplaySymbolsCommandsFormAccessor.prototype.sortCompound = function (a, b) {
+    DisplayRacerCommandsFormAccessor.prototype.sortCompound = function (a, b) {
         if (a > b)
             return +1;
         if (a < b)
             return -1;
         return 0;
     };
-    DisplaySymbolsCommandsFormAccessor.prototype.attachAddRacerButton = function () {
+    DisplayRacerCommandsFormAccessor.prototype.attachAddRacerButton = function () {
         var me = this;
         $('#addSymbolsRow').on('click', function (e) {
-            me.logger.trace('addSymbolsRow:clicked');
+            me.logger.trace('addRacer:clicked');
             e.preventDefault();
             me.addRacer();
         });
     };
-    DisplaySymbolsCommandsFormAccessor.prototype.addRacer = function () {
-        var accessor = this.symbolsFormAccessorFactory.create(this.rowCount++);
-        this.symbolsFormAccessors.push(accessor);
+    DisplayRacerCommandsFormAccessor.prototype.attachExistingRacer = function () {
+        var _this = this;
+        var accessors = this.symbolsFormAccessorFactory.attach();
+        accessors.forEach(function (accessor) { return _this.racerFormAccessors.push(accessor); });
+        this.rowCount = accessors.length;
     };
-    DisplaySymbolsCommandsFormAccessor.prototype.attachSubmitButton = function () {
+    DisplayRacerCommandsFormAccessor.prototype.addRacer = function () {
+        var accessor = this.symbolsFormAccessorFactory.create(this.rowCount++);
+        this.racerFormAccessors.push(accessor);
+    };
+    DisplayRacerCommandsFormAccessor.prototype.attachSubmitButton = function () {
         var me = this;
         $('#displaySymbols').on('click', function (e) {
             me.logger.trace('displaySymbols:clicked');
             e.preventDefault();
             var data = {
-                userId: me.userId,
-                channelId: me.channelId,
-                guildId: me.guildId,
+                userId: me.discordInfo.userId,
+                channelId: me.discordInfo.channelId,
+                guildId: me.discordInfo.guildId,
                 symbols: new Array()
             };
-            me.symbolsFormAccessors.forEach(function (row) {
+            me.racerFormAccessors.forEach(function (row) {
                 data.symbols.push({
                     racer: row.racer,
                     type: row.type,
@@ -283,9 +306,9 @@ var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
             });
         });
     };
-    Object.defineProperty(DisplaySymbolsCommandsFormAccessor.prototype, "symbols", {
+    Object.defineProperty(DisplayRacerCommandsFormAccessor.prototype, "symbols", {
         get: function () {
-            return this.symbolsFormAccessors;
+            return this.racerFormAccessors;
         },
         set: function (v) {
             throw 'NotSupportedException';
@@ -293,34 +316,15 @@ var DisplaySymbolsCommandsFormAccessor = /** @class */ (function (_super) {
         enumerable: true,
         configurable: true
     });
-    return DisplaySymbolsCommandsFormAccessor;
+    return DisplayRacerCommandsFormAccessor;
 }(BaseCommandsAccessor));
 var SymbolsFormAccessor = /** @class */ (function () {
     function SymbolsFormAccessor(index, loggerFactory) {
         this.index = index;
         this.logger = loggerFactory.create(SymbolsFormAccessor);
     }
-    SymbolsFormAccessor.prototype.load = function () {
-        this.loadDefaults();
-        this.attachRemoveButton();
-    };
     SymbolsFormAccessor.prototype.getIndex = function () {
         return this.index;
-    };
-    SymbolsFormAccessor.prototype.attachRemoveButton = function () {
-        var me = this;
-        $("[data-index=\"" + me.index + "\"]").on('click', function () {
-            $("[data-symbols-row=\"" + me.index + "\"]").remove();
-        });
-    };
-    SymbolsFormAccessor.prototype.loadDefaults = function () {
-        this.type = 'NPC';
-        this.advantages = 0;
-        this.successes = 0;
-        this.triumphs = 0;
-        this.threats = 0;
-        this.failures = 0;
-        this.despairs = 0;
     };
     Object.defineProperty(SymbolsFormAccessor.prototype, "racer", {
         get: function () {
@@ -413,10 +417,10 @@ var SymbolsFormAccessor = /** @class */ (function () {
     return SymbolsFormAccessor;
 }());
 var loggerFactory = new LoggerFactory_1.LoggerFactory();
-var discordOptions = config.discord;
-var formAccessor = new BatchCommandsFormAccessor(discordOptions, loggerFactory);
-var symbolsFormAccessorFactory = new SymbolsFormAccessorFactory(loggerFactory);
-var displaySymbolsCommandsFormAccessor = new DisplaySymbolsCommandsFormAccessor(discordOptions, loggerFactory, symbolsFormAccessorFactory);
+var discordInfo = new DiscordAccessor(loggerFactory.create(DiscordAccessor));
+var formAccessor = new BatchCommandsFormAccessor(loggerFactory, discordInfo);
+var symbolsFormAccessorFactory = new RacerFormAccessorFactory(loggerFactory);
+var displaySymbolsCommandsFormAccessor = new DisplayRacerCommandsFormAccessor(loggerFactory, symbolsFormAccessorFactory, discordInfo);
 var commands = [formAccessor, displaySymbolsCommandsFormAccessor];
 var main = new Main(commands, loggerFactory);
 $(function () {
