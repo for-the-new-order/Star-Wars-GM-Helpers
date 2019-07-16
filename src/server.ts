@@ -1,17 +1,13 @@
 import * as express from 'express';
 import { AddressInfo } from 'net';
-import * as path from 'path';
 import { Client, Message, TextChannel, Emoji, Collection } from 'discord.js';
 import { DiscordOptions } from './DiscordOptions';
 import { BatchCommands } from './BatchCommands';
 import { DisplaySymbolsCommands } from './DisplaySymbolsCommands';
 import { TableRenderer } from './TableRenderer';
-import * as fs from 'fs';
-import * as Handlebars from 'handlebars';
 import * as exphbs from 'express-handlebars';
 import { config } from './config';
 
-//const config = require('./config').configuration;
 const discordOptions = config.discord as DiscordOptions;
 const app = express();
 app.engine(
