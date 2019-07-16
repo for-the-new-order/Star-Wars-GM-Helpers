@@ -1,9 +1,9 @@
-import { BaseCommand } from '../BaseCommand';
+import { BaseCommand, Command } from '../BaseCommand';
 import { RacerRowAccessor, RacerFormFactory, RaceModel, RacerModel } from '.';
 import { LoggerFactory } from '../Logging';
 import { DiscordInfo } from '../DiscordInfo';
 
-export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel {
+export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel, Command {
     private racerFormAccessors = new Array<RacerRowAccessor>();
     private rowCount = 0;
     constructor(loggerFactory: LoggerFactory, private symbolsFormAccessorFactory: RacerFormFactory, private discordInfo: DiscordInfo) {
@@ -128,53 +128,56 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
 
     private attachSubmitButton() {
         const me = this;
-        $('#displaySymbols').on('click', function(e) {
-            me.logger.trace('displaySymbols:clicked');
+        $('#displayRacers').on('click', function(e) {
+            me.logger.trace('displayRacers:clicked');
             e.preventDefault();
-            const data = {
-                userId: me.discordInfo.userId,
-                channelId: me.discordInfo.channelId,
-                guildId: me.discordInfo.guildId,
-                racers: new Array<RacerModel>()
-            };
-            me.racerFormAccessors.forEach(row => {
-                data.racers.push({
-                    // Racer
-                    racer: row.racer,
-                    skill: row.skill,
-                    type: row.type,
-
-                    // Vehicle
-                    vehicle: row.vehicle,
-                    silhouette: row.silhouette,
-                    currentSpeed: row.currentSpeed,
-                    maxSpeed: row.maxSpeed,
-                    handling: row.handling,
-                    currentSystemStrain: row.currentSystemStrain,
-                    maxSystemStrain: row.maxSystemStrain,
-                    currentHull: row.currentHull,
-                    maxHull: row.maxHull,
-                    part: row.part,
-                    lap: row.lap,
-
-                    // Symbols
-                    advantages: row.advantages,
-                    successes: row.successes,
-                    triumphs: row.triumphs,
-                    threats: row.threats,
-                    failures: row.failures,
-                    despairs: row.despairs
-                });
-            });
+            const data = me.createRaceModel();
             $.ajax({
-                url: '/commands/display-symbols',
+                url: '/commands/display-racers',
                 method: 'POST',
                 data: data
             }).done(function(msg) {
-                me.logger.trace('displaySymbols:posted');
                 me.logger.info(msg);
+                me.logger.trace('displayRacers:posted');
             });
         });
+    }
+
+    private createRaceModel(): RaceModel {
+        const data = {
+            userId: this.discordInfo.userId,
+            channelId: this.discordInfo.channelId,
+            guildId: this.discordInfo.guildId,
+            racers: new Array<RacerModel>()
+        };
+        this.racerFormAccessors.forEach(row => {
+            data.racers.push({
+                // Racer
+                racer: row.racer,
+                skill: row.skill,
+                type: row.type,
+                // Vehicle
+                vehicle: row.vehicle,
+                silhouette: row.silhouette,
+                currentSpeed: row.currentSpeed,
+                maxSpeed: row.maxSpeed,
+                handling: row.handling,
+                currentSystemStrain: row.currentSystemStrain,
+                maxSystemStrain: row.maxSystemStrain,
+                currentHull: row.currentHull,
+                maxHull: row.maxHull,
+                part: row.part,
+                lap: row.lap,
+                // Symbols
+                advantages: row.advantages,
+                successes: row.successes,
+                triumphs: row.triumphs,
+                threats: row.threats,
+                failures: row.failures,
+                despairs: row.despairs
+            });
+        });
+        return data as RaceModel;
     }
 
     public get racers(): RacerModel[] {

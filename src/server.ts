@@ -6,7 +6,7 @@ import { DiscordInfo } from './DiscordInfo';
 import { TableRenderer } from './TableRenderer';
 import * as exphbs from 'express-handlebars';
 import { config } from './config';
-import { RacePart, RacerCommand } from './RacerCommand';
+import { RacePart, RaceModel, RacerModel } from './RacerCommand';
 
 const discordInfo = config.discord as DiscordInfo;
 const app = express();
@@ -69,15 +69,15 @@ app.post('/commands/batch', async function(req, res) {
     var result = await bot.sendBatchCommands(command);
     res.send(`${result} messages sent`);
 });
-app.post('/commands/display-symbols', async function(req, res) {
-    const command = req.body as RacerCommand;
+app.post('/commands/display-racers', async function(req, res) {
+    const command = req.body as RaceModel;
     const discordInfo = req.body as DiscordInfo;
     const bot = new MyDiscordBot(discordInfo);
     var result = await bot.sendDisplaySymbolsCommands(command);
     res.send(`${result} symbols sent.`);
 });
 
-function defaultRacer() {
+function defaultRacer(): RacerModel {
     return {
         racer: '',
         skill: '',
@@ -114,7 +114,7 @@ class MyDiscordBot {
         return command.chatCommands.length;
     }
 
-    public async sendDisplaySymbolsCommands(command: RacerCommand): Promise<number> {
+    public async sendDisplaySymbolsCommands(command: RaceModel): Promise<number> {
         if (command.racers) {
             await this.enforceClient();
             const channel = this.client.channels.get(this.discordInfo.channelId) as TextChannel;
@@ -125,7 +125,7 @@ class MyDiscordBot {
         return 0;
     }
 
-    private makeMessage(command: RacerCommand): string {
+    private makeMessage(command: RaceModel): string {
         var table = new TableRenderer();
         table.setHeader(['Racer', 'Type', 'Successes', 'Advantages', 'Triumphs', 'Failures', 'Threats', 'Despairs']);
         if (command.racers) {
