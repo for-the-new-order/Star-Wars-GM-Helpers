@@ -2,13 +2,13 @@
     "name": "discord-bot-batch-command",
     "version": "1.0.0",
     "description": "A web UI to send batch Discord bot command",
-    "main": "index.js",
+    "main": "src/server.js",
     "scripts": {
         "build-backend": "tsc",
         "watch-backend": "tsc -w",
-        "build-frontend": "browserify site.js > assets/js/public.js",
-        "watch-frontend": "watchify site.js -o assets/js/public.js --debug --verbose",
-        "start": "nodemon index.js",
+        "build-frontend": "browserify src/client.js > assets/js/public.js",
+        "watch-frontend": "watchify src/client.js -o assets/js/public.js --debug --verbose",
+        "start": "nodemon src/server.js",
         "build": "npm-run-all --parallel build-*",
         "watch": "npm-run-all --parallel watch-*",
         "run": "npm-run-all --parallel start watch"
