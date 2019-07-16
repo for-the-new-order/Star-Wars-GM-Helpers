@@ -5,8 +5,8 @@ import { DisplaySymbolsCommands } from './DisplaySymbolsCommands';
 import { Racer } from './Racer';
 import { LoggerFactory } from './Logging/LoggerFactory';
 import { Logger } from './Logging/Logger';
-
-const config = require('./config').configuration;
+import { config } from './config';
+//const config = require('./config').configuration;
 
 class Main {
     private logger: Logger<Main>;

@@ -9,8 +9,9 @@ import { TableRenderer } from './TableRenderer';
 import * as fs from 'fs';
 import * as Handlebars from 'handlebars';
 import * as exphbs from 'express-handlebars';
+import { config } from './config';
 
-const config = require('./config').configuration;
+//const config = require('./config').configuration;
 const discordOptions = config.discord as DiscordOptions;
 const app = express();
 app.engine(
@@ -18,8 +19,8 @@ app.engine(
     exphbs({
         extname: 'hbs',
         defaultLayout: 'default',
-        layoutsDir: __dirname + '/views/layouts/',
-        partialsDir: __dirname + '/views/partials/'
+        layoutsDir: __dirname + '/../views/layouts/',
+        partialsDir: __dirname + '/../views/partials/'
     })
 );
 app.set('view engine', 'hbs');
