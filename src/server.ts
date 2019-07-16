@@ -6,7 +6,10 @@ import { DiscordInfo } from './DiscordInfo';
 import { TableRenderer } from './TableRenderer';
 import * as exphbs from 'express-handlebars';
 import { config } from './config';
-import { RacePart, RaceModel, RacerModel } from './RacerCommand';
+import { RacePart, RaceModel, RacerModel, SaveRaceModel } from './RacerCommand';
+import * as fs from 'fs';
+import * as util from 'util';
+const readFile = util.promisify(fs.readFile);
 
 const discordInfo = config.discord as DiscordInfo;
 const app = express();
@@ -34,14 +37,29 @@ const listener = app.listen(8889, function() {
 app.get('/', function(req, res) {
     res.render('home', {});
 });
-app.get('/race', function(req, res) {
+app.get('/race', async function(req, res) {
+    var model = {
+        commandIdentifier: 'RacerCommand',
+        laps: [new RacePart('Part 1'), new RacePart('Part 2'), new RacePart('Part 3'), new RacePart('Part 4'), new RacePart('Part 5')],
+        racers: [defaultRacer()],
+        discordInfo
+    };
+    var raceName = req.query.race;
+    if (raceName) {
+        const fileName = makeRaceFilePath(raceName);
+        await readFile(fileName)
+            .catch(reason => {
+                console.error(reason);
+            })
+            .then(buf => {
+                if (buf) {
+                    var json = (buf as Buffer).toString();
+                    model = JSON.parse(json);
+                }
+            });
+    }
     res.render('race', {
-        model: {
-            commandIdentifier: 'RacerCommand',
-            laps: [new RacePart('Part 1'), new RacePart('Part 2'), new RacePart('Part 3'), new RacePart('Part 4'), new RacePart('Part 5')],
-            racers: [defaultRacer()],
-            discordInfo
-        }
+        model
     });
 });
 app.get('/batchCommands', function(req, res) {
@@ -76,6 +94,37 @@ app.post('/commands/display-racers', async function(req, res) {
     var result = await bot.sendDisplaySymbolsCommands(command);
     res.send(`${result} symbols sent.`);
 });
+app.post('/commands/save-race', async function(req, res) {
+    const raceToSave = req.body as SaveRaceModel;
+    const data = JSON.stringify(raceToSave.race);
+    const fileName = makeRaceFilePath(raceToSave.name);
+    fs.writeFile(fileName, data, err => {
+        if (err) {
+            console.log(err);
+        }
+    });
+    res.send(`Race ${raceToSave.name} saved.`);
+});
+
+function makeRaceFilePath(raceName: string): string {
+    return `assets/races/${raceName}.json`;
+}
+
+function createDefaultRace(): RaceViewModel {
+    return {
+        commandIdentifier: 'RacerCommand',
+        parts: [new RacePart('Part 1'), new RacePart('Part 2'), new RacePart('Part 3'), new RacePart('Part 4'), new RacePart('Part 5')],
+        racers: [defaultRacer()],
+        discordInfo
+    };
+}
+
+export class RaceViewModel implements RaceModel {
+    public parts: RacePart[] = new Array<RacePart>();
+    public racers: RacerModel[] = new Array<RacerModel>();
+    public commandIdentifier: string;
+    public discordInfo: DiscordInfo;
+}
 
 function defaultRacer(): RacerModel {
     return {

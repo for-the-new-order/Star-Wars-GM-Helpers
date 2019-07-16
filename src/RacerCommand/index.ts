@@ -5,3 +5,4 @@ export { RacerModel } from './RacerModel';
 export { RacePartModel } from './RacePartModel';
 export { RacePart } from './RacePart';
 export { RaceModel } from './RaceModel';
+export { SaveRaceModel } from './SaveRaceModel';

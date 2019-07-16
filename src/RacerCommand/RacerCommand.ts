@@ -1,5 +1,6 @@
+import { SaveRaceModel } from './SaveRaceModel';
 import { BaseCommand, Command } from '../BaseCommand';
-import { RacerRowAccessor, RacerFormFactory, RaceModel, RacerModel } from '.';
+import { RacerRowAccessor, RacerFormFactory, RaceModel, RacerModel, RacePart } from '.';
 import { LoggerFactory } from '../Logging';
 import { DiscordInfo } from '../DiscordInfo';
 
@@ -19,8 +20,39 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
         this.attachResolveNegativesSymbols();
         this.attachRemoveRowButtons();
         this.attachExistingRacer();
+        this.attachSaveButton();
+        this.attachLoadButton();
         this.logger.trace('RacerCommand loaded');
     }
+
+    private attachSaveButton() {
+        var me = this;
+        $('#saveRace').on('click', function() {
+            const race = me.createRaceModel();
+            const name = prompt('Enter the race name');
+            const data = {
+                name,
+                race
+            } as SaveRaceModel;
+            me.logger.debug(JSON.stringify(data));
+            $.ajax({
+                url: '/commands/save-race',
+                method: 'POST',
+                data: data
+            }).done(function(msg) {
+                me.logger.info(msg);
+                me.logger.trace('displayRacers:posted');
+            });
+        });
+    }
+    private attachLoadButton() {
+        var me = this;
+        $('#loadRace').on('click', function() {
+            const name = prompt('Race name');
+            location.assign(`/race?race=${name}`);
+        });
+    }
+
     private attachRemoveRowButtons() {
         $(document).on('click', '[data-index]', function() {
             var index = $(this).attr('data-index');
@@ -148,7 +180,8 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
             userId: this.discordInfo.userId,
             channelId: this.discordInfo.channelId,
             guildId: this.discordInfo.guildId,
-            racers: new Array<RacerModel>()
+            racers: new Array<RacerModel>(),
+            parts: new Array<RacePart>()
         };
         this.racerFormAccessors.forEach(row => {
             data.racers.push({
@@ -184,6 +217,14 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
         return this.racerFormAccessors;
     }
     public set racers(v: RacerModel[]) {
+        throw 'NotSupportedException';
+    }
+
+    public get parts(): RacePart[] {
+        //return this.racerFormAccessors;
+        throw 'NotImplementedException';
+    }
+    public set parts(v: RacePart[]) {
         throw 'NotSupportedException';
     }
 }
