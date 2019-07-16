@@ -46,14 +46,16 @@ export class TableRenderer {
     }
     private getColumnsWidths(table: Array<Array<string>>, padding: number): number[] {
         const columns = new Array<number>();
-        for (let vIndex = 0; vIndex < table.length; vIndex++) {
-            for (let hIndex = 0; hIndex < this.getMaxWidth(); hIndex++) {
+        for (let hIndex = 0; hIndex < this.getMaxWidth(); hIndex++) {
+            let columnLength = 0;
+            for (let vIndex = 0; vIndex < table.length; vIndex++) {
                 const element = table[vIndex][hIndex].toString();
                 //.replace(/<:[^:]+:[^>]+>/, 'X');
                 const elementLength = element.length;
                 const paddedLength = elementLength + padding;
-                columns.push(paddedLength);
+                columnLength = Math.max(columnLength, paddedLength);
             }
+            columns.push(columnLength);
         }
         columns[columns.length - 1] -= padding;
         return columns;
