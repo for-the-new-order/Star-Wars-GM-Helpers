@@ -35,4 +35,7 @@ export class Logger<T> {
         $col2.appendTo($row);
         $row.prependTo(this.logsSelector);
     }
+    public get TypeName(): string {
+        return this.TName;
+    }
 }

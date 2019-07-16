@@ -1,4 +1,4 @@
-export interface Symbols {
+export interface Racer {
     racer: string;
     type: string;
     advantages: number;

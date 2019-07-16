@@ -40,6 +40,7 @@ app.get('/', function(req, res) {
 app.get('/race', function(req, res) {
     res.render('race', {
         model: {
+            commandIdentifier: 'RacerCommand',
             laps: [new RacePart('Part 1'), new RacePart('Part 2'), new RacePart('Part 3'), new RacePart('Part 4'), new RacePart('Part 5')],
             racers: [defaultRacer()],
             discordOptions
@@ -47,7 +48,11 @@ app.get('/race', function(req, res) {
     });
 });
 app.get('/batchCommands', function(req, res) {
-    res.render('batchCommands');
+    res.render('batchCommands', {
+        model: {
+            commandIdentifier: 'BatchCommand'
+        }
+    });
 });
 
 //

@@ -1,6 +1,6 @@
 import { BaseCommands } from './BaseCommands';
-import { Symbols } from './Symbols';
+import { Racer } from './Racer';
 
 export interface DisplaySymbolsCommands extends BaseCommands {
-    symbols: Symbols[];
+    symbols: Racer[];
 }

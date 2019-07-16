@@ -36,6 +36,13 @@ var Logger = /** @class */ (function () {
         $col2.appendTo($row);
         $row.prependTo(this.logsSelector);
     };
+    Object.defineProperty(Logger.prototype, "TypeName", {
+        get: function () {
+            return this.TName;
+        },
+        enumerable: true,
+        configurable: true
+    });
     return Logger;
 }());
 exports.Logger = Logger;
