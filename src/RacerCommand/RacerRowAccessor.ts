@@ -51,7 +51,7 @@ export class RacerRowAccessor implements RacerModel {
     }
 
     public get silhouette(): number {
-        return $(`#silhouette-${this.index}`).val() as number;
+        return parseInt($(`#silhouette-${this.index}`).val() as string);
     }
     public set silhouette(v: number) {
         this.logger.debug(`Setting silhouette to ${v}`);
@@ -59,7 +59,7 @@ export class RacerRowAccessor implements RacerModel {
     }
 
     public get currentSpeed(): number {
-        return $(`#current-speed-${this.index}`).val() as number;
+        return parseInt($(`#current-speed-${this.index}`).val() as string);
     }
     public set currentSpeed(v: number) {
         this.logger.debug(`Setting currentSpeed to ${v}`);
@@ -67,7 +67,7 @@ export class RacerRowAccessor implements RacerModel {
     }
 
     public get maxSpeed(): number {
-        return $(`#max-speed-${this.index}`).val() as number;
+        return parseInt($(`#max-speed-${this.index}`).val() as string);
     }
     public set maxSpeed(v: number) {
         this.logger.debug(`Setting maxSpeed to ${v}`);
@@ -75,7 +75,7 @@ export class RacerRowAccessor implements RacerModel {
     }
 
     public get handling(): number {
-        return $(`#handling-${this.index}`).val() as number;
+        return parseInt($(`#handling-${this.index}`).val() as string);
     }
     public set handling(v: number) {
         this.logger.debug(`Setting handling to ${v}`);
@@ -83,7 +83,7 @@ export class RacerRowAccessor implements RacerModel {
     }
 
     public get currentSystemStrain(): number {
-        return $(`#current-ss-${this.index}`).val() as number;
+        return parseInt($(`#current-ss-${this.index}`).val() as string);
     }
     public set currentSystemStrain(v: number) {
         this.logger.debug(`Setting currentSystemStrain to ${v}`);
@@ -91,7 +91,7 @@ export class RacerRowAccessor implements RacerModel {
     }
 
     public get maxSystemStrain(): number {
-        return $(`#max-ss-${this.index}`).val() as number;
+        return parseInt($(`#max-ss-${this.index}`).val() as string);
     }
     public set maxSystemStrain(v: number) {
         this.logger.debug(`Setting maxSystemStrain to ${v}`);
@@ -99,7 +99,7 @@ export class RacerRowAccessor implements RacerModel {
     }
 
     public get currentHull(): number {
-        return $(`#current-hull-${this.index}`).val() as number;
+        return parseInt($(`#current-hull-${this.index}`).val() as string);
     }
     public set currentHull(v: number) {
         this.logger.debug(`Setting currentHull to ${v}`);
@@ -107,7 +107,7 @@ export class RacerRowAccessor implements RacerModel {
     }
 
     public get maxHull(): number {
-        return $(`#max-hull-${this.index}`).val() as number;
+        return parseInt($(`#max-hull-${this.index}`).val() as string);
     }
     public set maxHull(v: number) {
         this.logger.debug(`Setting maxHull to ${v}`);
@@ -115,7 +115,7 @@ export class RacerRowAccessor implements RacerModel {
     }
 
     public get part(): number {
-        return $(`#part-${this.index}`).val() as number;
+        return parseInt($(`#part-${this.index}`).val() as string);
     }
     public set part(v: number) {
         this.logger.debug(`Setting part to ${v}`);
@@ -123,7 +123,7 @@ export class RacerRowAccessor implements RacerModel {
     }
 
     public get lap(): number {
-        return $(`#lap-${this.index}`).val() as number;
+        return parseInt($(`#lap-${this.index}`).val() as string);
     }
     public set lap(v: number) {
         this.logger.debug(`Setting lap to ${v}`);
@@ -134,7 +134,7 @@ export class RacerRowAccessor implements RacerModel {
     // Symbols
     //
     public get advantages(): number {
-        return $(`#advantages-${this.index}`).val() as number;
+        return parseInt($(`#advantages-${this.index}`).val() as string);
     }
     public set advantages(v: number) {
         this.logger.debug(`Setting advantages to ${v}`);
@@ -142,7 +142,7 @@ export class RacerRowAccessor implements RacerModel {
     }
 
     public get successes(): number {
-        return $(`#successes-${this.index}`).val() as number;
+        return parseInt($(`#successes-${this.index}`).val() as string);
     }
     public set successes(v: number) {
         this.logger.debug(`Setting successes to ${v}`);
@@ -150,7 +150,7 @@ export class RacerRowAccessor implements RacerModel {
     }
 
     public get triumphs(): number {
-        return $(`#triumphs-${this.index}`).val() as number;
+        return parseInt($(`#triumphs-${this.index}`).val() as string);
     }
     public set triumphs(v: number) {
         this.logger.debug(`Setting triumphs to ${v}`);
@@ -158,7 +158,7 @@ export class RacerRowAccessor implements RacerModel {
     }
 
     public get threats(): number {
-        return $(`#threats-${this.index}`).val() as number;
+        return parseInt($(`#threats-${this.index}`).val() as string);
     }
     public set threats(v: number) {
         this.logger.debug(`Setting threats to ${v}`);
@@ -166,7 +166,7 @@ export class RacerRowAccessor implements RacerModel {
     }
 
     public get failures(): number {
-        return $(`#failures-${this.index}`).val() as number;
+        return parseInt($(`#failures-${this.index}`).val() as string);
     }
     public set failures(v: number) {
         this.logger.debug(`Setting failures to ${v}`);
@@ -174,7 +174,7 @@ export class RacerRowAccessor implements RacerModel {
     }
 
     public get despairs(): number {
-        return $(`#despairs-${this.index}`).val() as number;
+        return parseInt($(`#despairs-${this.index}`).val() as string);
     }
     public set despairs(v: number) {
         this.logger.debug(`Setting despairs to ${v}`);

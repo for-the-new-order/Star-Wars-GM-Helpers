@@ -3,6 +3,8 @@ import { Command } from './BaseCommand';
 import { DiscordAccessor } from './DiscordInfo';
 import { BatchCommand } from './BatchCommand';
 import { RacerFormFactory, RacerCommand, RacePartFactory } from './RacerCommand';
+import { RollService, GenesysParserFactory } from './DiceRoller';
+import { RaceService } from './RacerCommand/RacerCommand';
 
 export class Main {
     private logger: Logger<Main>;
@@ -28,12 +30,16 @@ export class Main {
 //
 // Composition root
 //
+const parserFactory = new GenesysParserFactory();
+const rollService = new RollService(parserFactory);
+
 const loggerFactory = new LoggerFactory();
 const discordInfo = new DiscordAccessor(loggerFactory.create(DiscordAccessor));
 const formAccessor = new BatchCommand(loggerFactory, discordInfo);
 const racerFormFactory = new RacerFormFactory(loggerFactory);
 const racePartFactory = new RacePartFactory(loggerFactory);
-const displaySymbolsCommandsFormAccessor = new RacerCommand(loggerFactory, racerFormFactory, discordInfo, racePartFactory);
+const raceService = new RaceService(rollService, loggerFactory);
+const displaySymbolsCommandsFormAccessor = new RacerCommand(loggerFactory, racerFormFactory, discordInfo, racePartFactory, raceService);
 const commands = [formAccessor, displaySymbolsCommandsFormAccessor];
 const main = new Main(commands, loggerFactory);
 

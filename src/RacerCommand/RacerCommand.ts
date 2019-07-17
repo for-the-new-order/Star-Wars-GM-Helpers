@@ -1,11 +1,13 @@
 import { SaveRaceModel } from './SaveRaceModel';
 import { BaseCommand, Command } from '../BaseCommand';
 import { RacerRowAccessor, RacerFormFactory, RaceModel, RacerModel, RacePart } from '.';
-import { LoggerFactory } from '../Logging';
+import { LoggerFactory, Logger } from '../Logging';
 import { DiscordInfo } from '../DiscordInfo';
 import { accessSync } from 'fs';
 import { RacePartAccessor } from './RacePartAccessor';
 import { RacePartFactory } from './RacePartFactory';
+import { RollService, DiceRollResult } from '../DiceRoller';
+import { RollServiceResult } from '../DiceRoller/RollService';
 
 export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel, Command {
     private racerFormAccessors = new Array<RacerRowAccessor>();
@@ -16,7 +18,7 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
         private racerFormFactory: RacerFormFactory,
         private discordInfo: DiscordInfo,
         private racePartFactory: RacePartFactory,
-        private raceService: RaceService = new RaceService()
+        private raceService: RaceService
     ) {
         super(loggerFactory.create(RacerCommand));
     }
@@ -141,7 +143,14 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
             if (accessor) {
                 me.logger.trace(`Roll racing skill of index: ${index} | skill: ${accessor.skill}`);
                 // TODO
-                me.logger.warning('Not yet implemented!');
+                var rollResult = me.raceService.roll(accessor, me.parts);
+                const resultingFaces = rollResult.flattenFaces('|');
+                me.logger.debug(`Resulting faces of '${resultingFaces}'.`);
+                me.raceService.applyRoll(accessor, rollResult);
+                // var tmp = JSON.stringify(rollResult);
+                // me.logger.debug(tmp);
+                // END TODO
+                me.logger.warning('Not fully implemented yet!');
             } else {
                 me.logger.warning(`The "racerFormAccessors[${index}]" does not exist.`);
             }
@@ -294,7 +303,13 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
 }
 
 export class RaceService {
-    public applyNegativeEffects(model: RacerModel): RacerModel {
+    private logger: Logger<RaceService>;
+
+    constructor(private rollService: RollService, loggerFactory: LoggerFactory) {
+        this.logger = loggerFactory.create(RaceService);
+    }
+
+    public applyNegativeEffects(model: RacerModel): void {
         let successes = model.successes - model.failures;
         let advantages = model.advantages - model.threats;
         let failures = 0;
@@ -311,6 +326,49 @@ export class RaceService {
         model.failures = failures;
         model.advantages = advantages;
         model.threats = threats;
-        return model;
+    }
+
+    public roll(model: RacerModel, parts: RacePart[]): RollServiceResult {
+        if (model.skill) {
+            var dicesToRoll = model.skill;
+            this.logger.trace(`Add '${model.racer}' skill of '${model.skill}'.`);
+
+            var currentPart = parts[model.part];
+            dicesToRoll += currentPart.difficulty;
+            this.logger.trace(`Add '${currentPart.name}' difficulty of '${currentPart.difficulty}'.`);
+
+            this.logger.info(`Rolling '${dicesToRoll}'.`);
+            var rollResult = this.rollService.roll(dicesToRoll);
+            return rollResult;
+        }
+        this.logger.warning('No skill to roll');
+        return null;
+    }
+
+    public applyRoll(model: RacerModel, diceRolled: RollServiceResult): void {
+        var rawSymbols = diceRolled.countSymbols();
+        var symbols = diceRolled.reduceRoll();
+        this.logger.debug('Raw: ' + JSON.stringify(rawSymbols));
+        this.logger.debug('Reduced: ' + JSON.stringify(symbols));
+
+        if (symbols.success !== 0) {
+            model.successes += symbols.success;
+        }
+        if (symbols.advantage !== 0) {
+            model.advantages += symbols.advantage;
+        }
+        if (symbols.triumph !== 0) {
+            model.triumphs += symbols.triumph;
+        }
+
+        if (symbols.failure !== 0) {
+            model.failures += symbols.failure;
+        }
+        if (symbols.threat !== 0) {
+            model.threats += symbols.threat;
+        }
+        if (symbols.despair !== 0) {
+            model.despairs += symbols.despair;
+        }
     }
 }

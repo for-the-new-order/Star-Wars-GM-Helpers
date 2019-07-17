@@ -1,5 +1,6 @@
 import { RacePartModel } from './RacePartModel';
 import { Logger, LoggerFactory } from '../Logging';
+
 export class RacePartAccessor implements RacePartModel {
     protected logger: Logger<RacePartAccessor>;
     constructor(private index: number, loggerFactory: LoggerFactory) {
@@ -27,7 +28,7 @@ export class RacePartAccessor implements RacePartModel {
     }
 
     public get distance(): number {
-        return $(`#partDistance${this.index}`).val() as number;
+        return parseInt($(`#partDistance${this.index}`).val() as string);
     }
     public set distance(v: number) {
         this.logger.debug(`Setting distance to ${v}`);
