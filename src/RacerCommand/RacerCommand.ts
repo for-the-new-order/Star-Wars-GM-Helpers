@@ -41,6 +41,10 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
         this.logger.trace('RacerCommand loaded');
     }
 
+    private findRacerRow(index: number): RacerRowAccessor {
+        return this.racerFormAccessors.find(x => x.getIndex() == index);
+    }
+
     private attachSaveButton() {
         var me = this;
         $('#saveRace').on('click', function() {
@@ -124,7 +128,7 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
             const index = parseInt(rawIndex);
             me.logger.trace(`Resolve negative symbols of ${index}`);
             e.preventDefault();
-            const accessor = me.racerFormAccessors[index];
+            const accessor = me.findRacerRow(index);
             if (accessor) {
                 me.raceService.applyNegativeEffects(accessor);
             } else {
@@ -139,7 +143,7 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
             const rawIndex = $(this).attr('data-index');
             e.preventDefault();
             const index = parseInt(rawIndex);
-            const accessor = me.racerFormAccessors[index];
+            const accessor = me.findRacerRow(index);
             if (accessor) {
                 me.logger.trace(`Roll racing skill of index: ${index} | skill: ${accessor.skill}`);
                 // TODO
