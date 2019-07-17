@@ -146,7 +146,10 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
                 var rollResult = me.raceService.roll(accessor, me.parts);
                 const resultingFaces = rollResult.flattenFaces('|');
                 me.logger.debug(`Resulting faces of '${resultingFaces}'.`);
-                me.raceService.applyRoll(accessor, rollResult);
+                if (true) {
+                    me.raceService.applyRoll(accessor, rollResult);
+                }
+                me.raceService.updatePosition(accessor, me.parts);
                 // var tmp = JSON.stringify(rollResult);
                 // me.logger.debug(tmp);
                 // END TODO
@@ -369,6 +372,19 @@ export class RaceService {
         }
         if (symbols.despair !== 0) {
             model.despairs += symbols.despair;
+        }
+    }
+
+    public updatePosition(model: RacerModel, parts: RacePart[]): void {
+        const currentPart = parts[model.part];
+        const maxDistance = parts[parts.length - 1].distance;
+        const expectedDistance = currentPart.distance + maxDistance * model.lap;
+        if (model.successes >= expectedDistance) {
+            model.part += 1;
+        }
+        if (model.part >= parts.length) {
+            model.part = 0;
+            model.lap += 1;
         }
     }
 }
