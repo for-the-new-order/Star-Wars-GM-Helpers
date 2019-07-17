@@ -16,7 +16,7 @@ export class MyDiscordBot {
         });
         return command.chatCommands.length;
     }
-    public async sendDisplaySymbolsCommands(command: RaceModel): Promise<number> {
+    public async sendRaceResults(command: RaceModel): Promise<number> {
         if (command.racers) {
             await this.enforceClient();
             const channel = this.client.channels.get(this.discordInfo.channelId) as TextChannel;
@@ -28,12 +28,13 @@ export class MyDiscordBot {
     }
     private makeMessage(command: RaceModel): string {
         var table = new TableRenderer();
-        table.setHeader(['Racer', 'Type', 'Successes', 'Advantages', 'Triumphs', 'Failures', 'Threats', 'Despairs']);
+        table.setHeader(['#', 'Racer', 'P/L', 'Successes', 'Advantages', 'Triumphs', 'Failures', 'Threats', 'Despairs']);
         if (command.racers) {
-            command.racers.forEach(row => {
+            command.racers.forEach((row, index) => {
                 table.addRow([
-                    row.racer,
-                    row.type,
+                    (index + 1).toString(),
+                    `${row.racer} (${row.type})`,
+                    `${row.part}/${row.lap}`,
                     row.successes.toString(),
                     row.advantages.toString(),
                     row.triumphs.toString(),

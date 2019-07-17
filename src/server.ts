@@ -94,7 +94,7 @@ app.post('/commands/display-racers', async function(req, res) {
     const command = req.body as RaceModel;
     const discordInfo = req.body as DiscordInfo;
     const bot = new MyDiscordBot(discordInfo);
-    var result = await bot.sendDisplaySymbolsCommands(command);
+    var result = await bot.sendRaceResults(command);
     res.send(`${result} symbols sent.`);
 });
 app.post('/commands/save-race', async function(req, res) {

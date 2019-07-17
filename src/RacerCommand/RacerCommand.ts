@@ -25,7 +25,7 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
 
     public initialize(): void {
         this.logger.trace('RacerCommand loading');
-        this.attachSubmitButton();
+        this.attachDisplayRacersButton();
         this.attachAddRacerButton();
         this.attachSortInitButton();
         this.attachSortRaceButton();
@@ -153,7 +153,10 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
                 if (true) {
                     me.raceService.applyRoll(accessor, rollResult);
                 }
-                me.raceService.updatePosition(accessor, me.parts);
+                var finalResult = rollResult.reduceRoll();
+                if (finalResult.success > 0) {
+                    me.raceService.updatePosition(accessor, me.parts);
+                }
                 // var tmp = JSON.stringify(rollResult);
                 // me.logger.debug(tmp);
                 // END TODO
@@ -241,12 +244,18 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
         this.racerFormAccessors.push(accessor);
     }
 
-    private attachSubmitButton() {
+    private attachDisplayRacersButton() {
         const me = this;
         $('#displayRacers').on('click', function(e) {
             me.logger.trace('displayRacers:clicked');
             e.preventDefault();
-            const data = me.createRaceModel();
+            const raceModel = me.createRaceModel();
+            const discordInfo = {
+                userId: me.discordInfo.userId,
+                channelId: me.discordInfo.channelId,
+                guildId: me.discordInfo.guildId
+            };
+            const data = Object.assign({}, raceModel, discordInfo);
             $.ajax({
                 url: '/commands/display-racers',
                 method: 'POST',
@@ -383,6 +392,7 @@ export class RaceService {
         const currentPart = parts[model.part];
         const maxDistance = parts[parts.length - 1].distance;
         const expectedDistance = currentPart.distance + maxDistance * model.lap;
+        this.logger.trace(`expectedDistance: ${expectedDistance}`);
         if (model.successes >= expectedDistance) {
             model.part += 1;
         }
