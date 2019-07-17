@@ -6,15 +6,16 @@ import { DiscordInfo } from '../DiscordInfo';
 import { accessSync } from 'fs';
 import { RacePartAccessor } from './RacePartAccessor';
 import { RacePartFactory } from './RacePartFactory';
-import { RollService, DiceRollResult } from '../DiceRoller';
+import { RollService, DiceRollResult, DiceFaceEmojiConverter } from '../DiceRoller';
 import { RollServiceResult } from '../DiceRoller/RollService';
+import { MyDiscordBot } from '../MyDiscordBot';
 
 export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel, Command {
     private racerFormAccessors = new Array<RacerRowAccessor>();
     private racePartAccessors = new Array<RacePartAccessor>();
     private rowCount = 0;
     constructor(
-        loggerFactory: LoggerFactory,
+        private loggerFactory: LoggerFactory,
         private racerFormFactory: RacerFormFactory,
         private discordInfo: DiscordInfo,
         private racePartFactory: RacePartFactory,
@@ -139,7 +140,8 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
 
     private attachRollRaceButtons() {
         const me = this;
-        $(document).on('click', '[data-roll="race"]', function(e) {
+        const bot = new MyDiscordBot(this.discordInfo, this.loggerFactory);
+        $(document).on('click', '[data-roll="race"]', async function(e) {
             const rawIndex = $(this).attr('data-index');
             e.preventDefault();
             const index = parseInt(rawIndex);
@@ -148,18 +150,17 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
                 me.logger.trace(`Roll racing skill of index: ${index} | skill: ${accessor.skill}`);
                 // TODO
                 var rollResult = me.raceService.roll(accessor, me.parts);
-                const resultingFaces = rollResult.flattenFaces('|');
+                const resultingFaces = rollResult.flattenFaces();
                 me.logger.debug(`Resulting faces of '${resultingFaces}'.`);
-                if (true) {
-                    me.raceService.applyRoll(accessor, rollResult);
-                }
                 var finalResult = rollResult.reduceRoll();
                 if (finalResult.success > 0) {
                     me.raceService.updatePosition(accessor, me.parts);
                 }
-                // var tmp = JSON.stringify(rollResult);
-                // me.logger.debug(tmp);
-                // END TODO
+                await bot.sendRollResult(accessor, rollResult);
+                if (true) {
+                    //confirm('Do you want to update the symbols?')) {
+                    me.raceService.applyRoll(accessor, rollResult);
+                }
                 me.logger.warning('Not fully implemented yet!');
             } else {
                 me.logger.warning(`The "racerFormAccessors[${index}]" does not exist.`);

@@ -1,10 +1,10 @@
 export enum Symbols {
-    Success = 's',
-    Advantage = 'a',
-    Triumph = 'r',
-    Failure = 'f',
-    Threat = 't',
-    Despair = 'd',
-    LightSide = 'l',
-    DarkSide = 'n'
+    Success = 'Success', //s
+    Advantage = 'Advantage', //a
+    Triumph = 'Triumph', //r
+    Failure = 'Failure', //f
+    Threat = 'Threat', //t
+    Despair = 'Despair', //d
+    LightSide = 'LightSide', //l
+    DarkSide = 'DarkSide' //n
 }

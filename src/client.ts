@@ -5,6 +5,7 @@ import { BatchCommand } from './BatchCommand';
 import { RacerFormFactory, RacerCommand, RacePartFactory } from './RacerCommand';
 import { RollService, GenesysParserFactory } from './DiceRoller';
 import { RaceService } from './RacerCommand/RacerCommand';
+import { ClientSidePrependLogStrategy } from './Logging/Logger';
 
 export class Main {
     private logger: Logger<Main>;
@@ -33,7 +34,7 @@ export class Main {
 const parserFactory = new GenesysParserFactory();
 const rollService = new RollService(parserFactory);
 
-const loggerFactory = new LoggerFactory();
+const loggerFactory = new LoggerFactory(new ClientSidePrependLogStrategy());
 const discordInfo = new DiscordAccessor(loggerFactory.create(DiscordAccessor));
 const formAccessor = new BatchCommand(loggerFactory, discordInfo);
 const racerFormFactory = new RacerFormFactory(loggerFactory);

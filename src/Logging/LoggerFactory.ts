@@ -1,8 +1,9 @@
 import { LogLevel } from './LogLevel';
-import { Logger } from './Logger';
+import { Logger, PrependLogStrategy } from './Logger';
 
 export class LoggerFactory {
-    create<T>(x: T & Function, minimumLogLevel: LogLevel = LogLevel.trace): Logger<T> {
-        return new Logger<T>(x, minimumLogLevel);
+    constructor(private prependLogStrategy: PrependLogStrategy) {}
+    create<T>(x: T & Function): Logger<T> {
+        return new Logger<T>(x, this.prependLogStrategy);
     }
 }

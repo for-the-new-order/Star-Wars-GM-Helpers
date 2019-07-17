@@ -3,10 +3,8 @@ import { MyDiscordBot } from '../MyDiscordBot';
 import { Symbols, DiceRollResult } from './';
 
 export class DiceFaceEmojiConverter {
-    private bot: MyDiscordBot;
-    constructor(discordInfo: DiscordInfo) {
-        this.bot = new MyDiscordBot(discordInfo);
-    }
+    constructor(private bot: MyDiscordBot) {}
+
     public convertSymbolToName(symbols: Symbols): string {
         if (symbols === Symbols.DarkSide) {
             return 'darkpip';
@@ -19,12 +17,12 @@ export class DiceFaceEmojiConverter {
     public convertRollToName(diceRollResult: DiceRollResult): string {
         return `${diceRollResult.dice.color}${diceRollResult.resultingFace}`;
     }
-    public convertSymbolToEmoji(symbols: Symbols): string {
+    public async convertSymbolToEmoji(symbols: Symbols): Promise<string> {
         var name = this.convertSymbolToName(symbols);
-        return this.bot.findEmojiString(name);
+        return await this.bot.findEmojiString(name);
     }
-    public convertRollToEmoji(diceRollResult: DiceRollResult): string {
+    public async convertRollToEmoji(diceRollResult: DiceRollResult): Promise<string> {
         var name = this.convertRollToName(diceRollResult);
-        return this.bot.findEmojiString(name);
+        return await this.bot.findEmojiString(name);
     }
 }

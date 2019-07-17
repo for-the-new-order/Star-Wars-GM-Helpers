@@ -9,6 +9,8 @@ import { RacePart, RaceModel, RacerModel, SaveRaceModel } from './RacerCommand';
 import * as fs from 'fs';
 import * as util from 'util';
 import { MyDiscordBot } from './MyDiscordBot';
+import { LoggerFactory } from './Logging';
+import { ServerSidePrependLogStrategy } from './Logging/Logger';
 const readFile = util.promisify(fs.readFile);
 
 const discordInfo = config.discord as DiscordInfo;
@@ -83,17 +85,18 @@ app.get('/partials/index-display-symbols-form', function(req, res) {
 
 //
 // Commands
+const loggerFactory = new LoggerFactory(new ServerSidePrependLogStrategy());
 app.post('/commands/batch', async function(req, res) {
     const command = req.body as BatchCommand;
     const discordInfo = req.body as DiscordInfo;
-    const bot = new MyDiscordBot(discordInfo);
+    const bot = new MyDiscordBot(discordInfo, loggerFactory);
     var result = await bot.sendBatchCommands(command);
     res.send(`${result} messages sent`);
 });
 app.post('/commands/display-racers', async function(req, res) {
     const command = req.body as RaceModel;
     const discordInfo = req.body as DiscordInfo;
-    const bot = new MyDiscordBot(discordInfo);
+    const bot = new MyDiscordBot(discordInfo, loggerFactory);
     var result = await bot.sendRaceResults(command);
     res.send(`${result} symbols sent.`);
 });
