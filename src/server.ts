@@ -38,9 +38,11 @@ app.get('/', function(req, res) {
     res.render('home', {});
 });
 app.get('/race', async function(req, res) {
-    var model = {
-        commandIdentifier: 'RacerCommand',
-        laps: [new RacePart('Part 1'), new RacePart('Part 2'), new RacePart('Part 3'), new RacePart('Part 4'), new RacePart('Part 5')],
+    const commandIdentifier = {
+        commandIdentifier: 'RacerCommand'
+    };
+    var raceModel = {
+        parts: [new RacePart('Part 1'), new RacePart('Part 2'), new RacePart('Part 3'), new RacePart('Part 4'), new RacePart('Part 5')],
         racers: [defaultRacer()],
         discordInfo
     };
@@ -54,13 +56,14 @@ app.get('/race', async function(req, res) {
             .then(buf => {
                 if (buf) {
                     var json = (buf as Buffer).toString();
-                    model = JSON.parse(json);
+                    raceModel = JSON.parse(json);
                 }
             });
     }
-    res.render('race', {
-        model
-    });
+    const viewModel = {
+        model: Object.assign(commandIdentifier, raceModel)
+    };
+    res.render('race', viewModel);
 });
 app.get('/batchCommands', function(req, res) {
     res.render('batchCommands', {
@@ -96,7 +99,8 @@ app.post('/commands/display-racers', async function(req, res) {
 });
 app.post('/commands/save-race', async function(req, res) {
     const raceToSave = req.body as SaveRaceModel;
-    const data = JSON.stringify(raceToSave.race);
+    const dataModel = Object.assign({ discordInfo: raceToSave.discordInfo }, raceToSave.race);
+    const data = JSON.stringify(dataModel, null, 4);
     const fileName = makeRaceFilePath(raceToSave.name);
     fs.writeFile(fileName, data, err => {
         if (err) {

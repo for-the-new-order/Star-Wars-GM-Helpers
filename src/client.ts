@@ -2,7 +2,7 @@ import { Logger, LoggerFactory } from './Logging';
 import { Command } from './BaseCommand';
 import { DiscordAccessor } from './DiscordInfo';
 import { BatchCommand } from './BatchCommand';
-import { RacerFormFactory, RacerCommand } from './RacerCommand';
+import { RacerFormFactory, RacerCommand, RacePartFactory } from './RacerCommand';
 
 export class Main {
     private logger: Logger<Main>;
@@ -31,8 +31,9 @@ export class Main {
 const loggerFactory = new LoggerFactory();
 const discordInfo = new DiscordAccessor(loggerFactory.create(DiscordAccessor));
 const formAccessor = new BatchCommand(loggerFactory, discordInfo);
-const symbolsFormAccessorFactory = new RacerFormFactory(loggerFactory);
-const displaySymbolsCommandsFormAccessor = new RacerCommand(loggerFactory, symbolsFormAccessorFactory, discordInfo);
+const racerFormFactory = new RacerFormFactory(loggerFactory);
+const racePartFactory = new RacePartFactory(loggerFactory);
+const displaySymbolsCommandsFormAccessor = new RacerCommand(loggerFactory, racerFormFactory, discordInfo, racePartFactory);
 const commands = [formAccessor, displaySymbolsCommandsFormAccessor];
 const main = new Main(commands, loggerFactory);
 

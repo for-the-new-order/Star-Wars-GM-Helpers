@@ -3,11 +3,21 @@ import { BaseCommand, Command } from '../BaseCommand';
 import { RacerRowAccessor, RacerFormFactory, RaceModel, RacerModel, RacePart } from '.';
 import { LoggerFactory } from '../Logging';
 import { DiscordInfo } from '../DiscordInfo';
+import { accessSync } from 'fs';
+import { RacePartAccessor } from './RacePartAccessor';
+import { RacePartFactory } from './RacePartFactory';
 
 export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel, Command {
     private racerFormAccessors = new Array<RacerRowAccessor>();
+    private racePartAccessors = new Array<RacePartAccessor>();
     private rowCount = 0;
-    constructor(loggerFactory: LoggerFactory, private symbolsFormAccessorFactory: RacerFormFactory, private discordInfo: DiscordInfo) {
+    constructor(
+        loggerFactory: LoggerFactory,
+        private racerFormFactory: RacerFormFactory,
+        private discordInfo: DiscordInfo,
+        private racePartFactory: RacePartFactory,
+        private raceService: RaceService = new RaceService()
+    ) {
         super(loggerFactory.create(RacerCommand));
     }
 
@@ -17,72 +27,124 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
         this.attachAddRacerButton();
         this.attachSortInitButton();
         this.attachSortRaceButton();
-        this.attachResolveNegativesSymbols();
+        this.attachResolveAllNegativeSymbolsButton();
+        this.attachResolveOneNegativeSymbolsButtons();
         this.attachRemoveRowButtons();
         this.attachExistingRacer();
+        this.attachResetButton();
         this.attachSaveButton();
         this.attachLoadButton();
+        this.attachRollRaceButtons();
+        this.loadExistingParts();
         this.logger.trace('RacerCommand loaded');
     }
 
     private attachSaveButton() {
         var me = this;
         $('#saveRace').on('click', function() {
-            const race = me.createRaceModel();
             const name = prompt('Enter the race name');
-            const data = {
-                name,
-                race
-            } as SaveRaceModel;
-            me.logger.debug(JSON.stringify(data));
-            $.ajax({
-                url: '/commands/save-race',
-                method: 'POST',
-                data: data
-            }).done(function(msg) {
-                me.logger.info(msg);
-                me.logger.trace('displayRacers:posted');
-            });
+            if (name) {
+                const race = me.createRaceModel();
+                const data = {
+                    name,
+                    race,
+                    discordInfo: {
+                        userId: me.discordInfo.userId,
+                        channelId: me.discordInfo.channelId,
+                        guildId: me.discordInfo.guildId
+                    }
+                } as SaveRaceModel;
+                me.logger.trace(`Saving race under name '${name}'.`);
+                me.logger.debug(JSON.stringify(data));
+                $.ajax({
+                    url: '/commands/save-race',
+                    method: 'POST',
+                    data: data
+                }).done(function(msg) {
+                    me.logger.info(msg);
+                    me.logger.trace(`Race '${name}' saved.`);
+                });
+            } else {
+                me.logger.info('Saving race aborted by the user.');
+            }
         });
     }
     private attachLoadButton() {
         var me = this;
         $('#loadRace').on('click', function() {
             const name = prompt('Race name');
-            location.assign(`/race?race=${name}`);
+            if (name) {
+                location.assign(`/race?race=${name}`);
+            } else {
+                me.logger.info('Save race aborted by the user.');
+            }
+        });
+    }
+
+    private attachResetButton() {
+        var me = this;
+        $('#resetRace').on('click', function() {
+            if (confirm('Are you sure that you want to cancel the race? All unsaved changes will be lost forever!')) {
+                me.logger.trace('Resetting the race');
+                location.assign('/race');
+            } else {
+                me.logger.info(`Race reset aborted by user.`);
+            }
         });
     }
 
     private attachRemoveRowButtons() {
-        $(document).on('click', '[data-index]', function() {
+        const me = this;
+        $(document).on('click', '[data-delete="race-row"]', function() {
             var index = $(this).attr('data-index');
-            $(`[data-symbols-row="${index}"]`).remove();
+            if (confirm('Are you sure that you want to delete this row?')) {
+                me.logger.trace(`Deleting the row '${index}'.`);
+                $(`[data-symbols-row="${index}"]`).remove();
+            } else {
+                me.logger.trace(`Deletion of row '${index}' aborted by the user.`);
+            }
         });
     }
 
-    private attachResolveNegativesSymbols() {
+    private attachResolveAllNegativeSymbolsButton() {
         const me = this;
         $('#resolveNegativesSymbols').on('click', function(e) {
-            me.logger.trace('resolveNegativesSymbols:clicked');
+            me.logger.trace('Resolve all negative symbols');
             e.preventDefault();
-            me.racerFormAccessors.forEach(accessor => {
-                let successes = accessor.successes - accessor.failures;
-                let advantages = accessor.advantages - accessor.threats;
-                let failures = 0;
-                let threats = 0;
-                if (successes < 0) {
-                    failures = -successes;
-                    successes = 0;
-                }
-                if (advantages < 0) {
-                    threats = -advantages;
-                    advantages = 0;
-                }
-                accessor.successes = successes;
-                accessor.failures = failures;
-                accessor.advantages = advantages;
-                accessor.threats = threats;
-            });
+            me.racerFormAccessors.forEach(accessor => me.raceService.applyNegativeEffects(accessor));
+        });
+    }
+
+    private attachResolveOneNegativeSymbolsButtons() {
+        const me = this;
+        $(document).on('click', '[data-resolve="race-negative"]', function(e) {
+            const rawIndex = $(this).attr('data-index');
+            const index = parseInt(rawIndex);
+            me.logger.trace(`Resolve negative symbols of ${index}`);
+            e.preventDefault();
+            const accessor = me.racerFormAccessors[index];
+            if (accessor) {
+                me.raceService.applyNegativeEffects(accessor);
+            } else {
+                me.logger.warning(`The "racerFormAccessors[${index}]" does not exist.`);
+            }
+        });
+    }
+
+    private attachRollRaceButtons() {
+        const me = this;
+        $(document).on('click', '[data-roll="race"]', function(e) {
+            const rawIndex = $(this).attr('data-index');
+            e.preventDefault();
+            const index = parseInt(rawIndex);
+            const accessor = me.racerFormAccessors[index];
+            if (accessor) {
+                me.logger.trace(`Roll racing skill of index: ${index} | skill: ${accessor.skill}`);
+                // TODO
+                me.logger.warning('Not yet implemented!');
+            } else {
+                me.logger.warning(`The "racerFormAccessors[${index}]" does not exist.`);
+            }
         });
     }
 
@@ -147,14 +209,19 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
         });
     }
 
+    private loadExistingParts() {
+        const accessors = this.racePartFactory.attach();
+        accessors.forEach(accessor => this.racePartAccessors.push(accessor));
+    }
+
     private attachExistingRacer() {
-        var accessors = this.symbolsFormAccessorFactory.attach();
+        var accessors = this.racerFormFactory.attach();
         accessors.forEach(accessor => this.racerFormAccessors.push(accessor));
         this.rowCount = accessors.length;
     }
 
     private addRacer(): void {
-        var accessor = this.symbolsFormAccessorFactory.create(this.rowCount++);
+        var accessor = this.racerFormFactory.create(this.rowCount++);
         this.racerFormAccessors.push(accessor);
     }
 
@@ -177,13 +244,10 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
 
     private createRaceModel(): RaceModel {
         const data = {
-            userId: this.discordInfo.userId,
-            channelId: this.discordInfo.channelId,
-            guildId: this.discordInfo.guildId,
             racers: new Array<RacerModel>(),
             parts: new Array<RacePart>()
         };
-        this.racerFormAccessors.forEach(row => {
+        this.racers.forEach(row => {
             data.racers.push({
                 // Racer
                 racer: row.racer,
@@ -210,6 +274,7 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
                 despairs: row.despairs
             });
         });
+        this.parts.forEach(part => data.parts.push(new RacePart(part.name, part.difficulty, part.distance)));
         return data as RaceModel;
     }
 
@@ -221,10 +286,31 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
     }
 
     public get parts(): RacePart[] {
-        //return this.racerFormAccessors;
-        throw 'NotImplementedException';
+        return this.racePartAccessors;
     }
     public set parts(v: RacePart[]) {
         throw 'NotSupportedException';
+    }
+}
+
+export class RaceService {
+    public applyNegativeEffects(model: RacerModel): RacerModel {
+        let successes = model.successes - model.failures;
+        let advantages = model.advantages - model.threats;
+        let failures = 0;
+        let threats = 0;
+        if (successes < 0) {
+            failures = -successes;
+            successes = 0;
+        }
+        if (advantages < 0) {
+            threats = -advantages;
+            advantages = 0;
+        }
+        model.successes = successes;
+        model.failures = failures;
+        model.advantages = advantages;
+        model.threats = threats;
+        return model;
     }
 }

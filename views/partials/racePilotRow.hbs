@@ -108,12 +108,18 @@
                     <div class="dropdown-menu dropdown-menu-right">
                         <h6 class="dropdown-header">Additional actions</h6>
                         <div class="dropdown-divider"></div>
-                        <button type="button" class="dropdown-item" disabled>Resolve negative symbols</button>
+                        <button type="button" class="dropdown-item" data-resolve="race-negative" data-index="{{index}}">
+                            Resolve negative symbols
+                        </button>
                         <div class="dropdown-divider"></div>
-                        <button type="button" class="dropdown-item" data-index="{{index}}">Delete row</button>
+                        <button type="button" class="dropdown-item" data-delete="race-row" data-index="{{index}}">
+                            Delete row
+                        </button>
                     </div>
                 </div>
-                <button type="button" class="btn btn-outline-primary" data-race="{{index}}" disabled>Race</button>
+                <button type="button" class="btn btn-outline-primary" data-roll="race" data-index="{{index}}">
+                    Race
+                </button>
             </div>
         </div>
     </div>

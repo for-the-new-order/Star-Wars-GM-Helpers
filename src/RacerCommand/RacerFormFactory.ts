@@ -10,13 +10,13 @@ export class RacerFormFactory {
     public create(index: number): RacerRowAccessor {
         var accessor = new RacerRowAccessor(index, this.loggerFactory);
         var me = this;
-        me.logger.trace(`SymbolsFormAccessorFactory:loading:${index}`);
+        me.logger.trace(`RacerFormFactory:loading:${index}`);
         $.ajax({
             url: '/partials/index-display-symbols-form',
             method: 'GET',
             data: { index: index }
         }).done(function(data) {
-            me.logger.trace(`SymbolsFormAccessorFactory:loaded:${index}`);
+            me.logger.trace(`RacerFormFactory:loaded:${index}`);
             const $parent = $('#display-symbols-card');
             const $row = $(data);
             $parent.append($row);
@@ -30,7 +30,7 @@ export class RacerFormFactory {
         $('[data-symbols-row]').each(function() {
             const $row = $(this);
             const index = parseInt($row.attr('data-symbols-row'));
-            me.logger.trace(`SymbolsFormAccessorFactory:attaching:${index}`);
+            me.logger.trace(`RacerFormFactory:attaching:${index}`);
             const accessor = new RacerRowAccessor(index, me.loggerFactory);
             accessors.push(accessor);
         });
