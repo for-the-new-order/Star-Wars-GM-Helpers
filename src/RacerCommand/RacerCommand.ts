@@ -148,7 +148,6 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
             const accessor = me.findRacerRow(index);
             if (accessor) {
                 me.logger.trace(`Roll racing skill of index: ${index} | skill: ${accessor.skill}`);
-                // TODO
                 var rollResult = me.raceService.roll(accessor, me.parts);
                 const resultingFaces = rollResult.flattenFaces();
                 me.logger.debug(`Resulting faces of '${resultingFaces}'.`);
@@ -157,11 +156,7 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
                     me.raceService.updatePosition(accessor, me.parts);
                 }
                 await bot.sendRollResult(accessor, rollResult);
-                if (true) {
-                    //confirm('Do you want to update the symbols?')) {
-                    me.raceService.applyRoll(accessor, rollResult);
-                }
-                me.logger.warning('Not fully implemented yet!');
+                me.raceService.applyRoll(accessor, rollResult);
             } else {
                 me.logger.warning(`The "racerFormAccessors[${index}]" does not exist.`);
             }
@@ -176,6 +171,8 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
             me.racerFormAccessors = me.racerFormAccessors
                 .sort(
                     (a, b) =>
+                        me.sortCompound(a.lap, b.lap) ||
+                        me.sortCompound(a.part, b.part) ||
                         me.sortCompound(a.successes - a.failures, b.successes - b.failures) ||
                         me.sortCompound(a.advantages - a.threats, b.advantages - b.threats) ||
                         me.sortCompound(a.triumphs, b.triumphs) ||
