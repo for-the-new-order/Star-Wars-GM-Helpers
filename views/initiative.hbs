@@ -1,5 +1,5 @@
 <div class="row mt-4 justify-content-end">
-    <div class="col-9">
+    <div class="col-7">
         <div class="card">
             <div class="card-header">
                 Initiative
@@ -40,41 +40,61 @@
                                     </button>
                                 </div>
                             </div>
-                            <div class="input-group mr-2">
-                                <input type="text" class="form-control text-right border-info" value="0"
-                                    id="currentInit" style="width: 75px;">
-                                <div class="input-group-append">
-                                    <button type="button" class="btn btn-outline-info" data-command="movePrevious">
-                                        Previous
-                                    </button>
-                                    <button type="button" class="btn btn-outline-info" data-command="setInit">
-                                        Set
-                                    </button>
-                                    <button type="button" class="btn btn-outline-info" data-command="moveNext">
-                                        Next
-                                    </button>
-                                    <button type="button" class="btn btn-outline-info" data-command="displayInit">
-                                        Display initiative
-                                    </button>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="row mt-2">
-                    <div class="col">Name</div>
-                    <div class="col">Init</div>
-                    <div class="col">Type</div>
                     <div class="col">
+                        <div class="btn-toolbar">
+                            <div class="input-group mr-2">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">Current Index</span>
+                                </div>
+                                <input type="text" class="form-control text-right" value="0" id="currentIndex"
+                                    style="width: 75px;">
+                            </div>
+                            <div class="input-group mr-2">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">Current Round</span>
+                                </div>
+                                <input type="text" class="form-control text-right" value="0" id="currentRound"
+                                    style="width: 75px;">
+                            </div>
+                            <div class="btn-group mr-2">
+                                <button type="button" class="btn btn-outline-secondary" data-command="setIndexRound">
+                                    Set index/round
+                                </button>
+                            </div>
+                            <div class="btn-group mr-2">
+                                <button type="button" class="btn btn-outline-info" data-command="moveNext">
+                                    Next
+                                </button>
+                                <button type="button" class="btn btn-outline-info" data-command="displayNext">
+                                    Display Next
+                                </button>
+                            </div>
+                            <div class="btn-group mr-2">
+                                <button type="button" class="btn btn-outline-primary" data-command="displayInit">
+                                    Display initiative
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-2 text-center">
+                    <div class="col-3">Name</div>
+                    <div class="col-2">Init</div>
+                    <div class="col-2">Type</div>
+                    <div class="col-1">
                         <span title="Success symbol" class="genesys-symbol genesys-symbol-success"></span>
                     </div>
-                    <div class="col">
+                    <div class="col-1">
                         <span title="Advantage symbol" class="genesys-symbol genesys-symbol-advantage"></span>
                     </div>
-                    <div class="col">
+                    <div class="col-1">
                         <span title="Triumph symbol" class="genesys-symbol genesys-symbol-triumph"></span>
                     </div>
-                    <div class="col">Actions</div>
+                    <div class="col-2">Actions</div>
                 </div>
                 {{#each model.characters}}
                 {{> initiativeRow index=@index }}

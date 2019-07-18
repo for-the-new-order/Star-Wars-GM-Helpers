@@ -5,6 +5,8 @@ export interface InitiativeViewModel {
         commandIdentifier: 'InitiativeView';
         characters: Array<InitiativeCharacterViewModel>;
         discordInfo: DiscordInfo;
+        currentIndex: 0;
+        currentRound: 0;
     };
 }
 
