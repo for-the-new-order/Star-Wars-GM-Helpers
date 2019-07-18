@@ -15,11 +15,12 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
     private racePartAccessors = new Array<RacePartAccessor>();
     private rowCount = 0;
     constructor(
-        private loggerFactory: LoggerFactory,
+        loggerFactory: LoggerFactory,
         private racerFormFactory: RacerFormFactory,
         private discordInfo: DiscordInfo,
         private racePartFactory: RacePartFactory,
-        private raceService: RaceService
+        private raceService: RaceService,
+        private bot: MyDiscordBot
     ) {
         super(loggerFactory.create(RacerCommand));
     }
@@ -140,7 +141,6 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
 
     private attachRollRaceButtons() {
         const me = this;
-        const bot = new MyDiscordBot(this.discordInfo, this.loggerFactory);
         $(document).on('click', '[data-roll="race"]', async function(e) {
             const rawIndex = $(this).attr('data-index');
             e.preventDefault();
@@ -155,7 +155,7 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
                 if (finalResult.success > 0) {
                     me.raceService.updatePosition(accessor, me.parts);
                 }
-                await bot.sendRollResult(accessor, rollResult);
+                await me.bot.sendRollResult(accessor, rollResult);
                 me.raceService.applyRoll(accessor, rollResult);
             } else {
                 me.logger.warning(`The "racerFormAccessors[${index}]" does not exist.`);
