@@ -7,6 +7,7 @@ import { RollService, GenesysParserFactory } from './DiceRoller';
 import { RaceService } from './RacerView/RacerView';
 import { ClientSidePrependLogStrategy } from './Logging/Logger';
 import { MyDiscordBot } from './MyDiscordBot';
+import { InitiativeView } from './InitiativeView';
 
 export class Main {
     private logger: Logger<Main>;
@@ -39,12 +40,21 @@ const rollService = new RollService(parserFactory);
 const loggerFactory = new LoggerFactory(new ClientSidePrependLogStrategy());
 const discordInfo = new DiscordAccessor(loggerFactory.create(DiscordAccessor));
 const bot = new MyDiscordBot(discordInfo, loggerFactory);
+
+// Batch commands View
 const formAccessor = new BatchCommandsView(loggerFactory, discordInfo);
+
+// Racer View
 const racerFormFactory = new RacerFormFactory(loggerFactory);
 const racePartFactory = new RacePartFactory(loggerFactory);
 const raceService = new RaceService(rollService, loggerFactory);
 const displaySymbolsCommandsFormAccessor = new RacerView(loggerFactory, racerFormFactory, discordInfo, racePartFactory, raceService, bot);
-const commands = [formAccessor, displaySymbolsCommandsFormAccessor];
+
+//InitiativeView
+const initiativeView = new InitiativeView(loggerFactory, discordInfo);
+
+// Main
+const commands = [formAccessor, displaySymbolsCommandsFormAccessor, initiativeView];
 const main = new Main(commands, loggerFactory);
 
 $(() => {

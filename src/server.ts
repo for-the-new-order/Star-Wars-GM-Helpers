@@ -11,6 +11,7 @@ import * as util from 'util';
 import { MyDiscordBot } from './MyDiscordBot';
 import { LoggerFactory } from './Logging';
 import { ServerSidePrependLogStrategy } from './Logging/Logger';
+import { InitiativeViewModel } from './InitiativeView';
 const readFile = util.promisify(fs.readFile);
 
 const discordInfo = config.discord as DiscordInfo;
@@ -75,11 +76,23 @@ app.get('/batchCommands', function(req, res) {
     });
 });
 app.get('/initiative', function(req, res) {
-    res.render('initiative', {
+    const viewModel: InitiativeViewModel = {
         model: {
-            commandIdentifier: 'InitiativeView'
+            commandIdentifier: 'InitiativeView',
+            characters: [
+                {
+                    name: '',
+                    skill: '',
+                    type: 'NPC',
+                    successes: 0,
+                    advantages: 0,
+                    triumphs: 0
+                }
+            ],
+            discordInfo
         }
-    });
+    };
+    res.render('initiative', viewModel);
 });
 
 //

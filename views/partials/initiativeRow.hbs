@@ -1,0 +1,41 @@
+<div class="row mt-2" data-symbols-row="{{index}}">
+    <div class="col">
+        <div class="form-group">
+            <input type="text" id="name-{{index}}" class="form-control" value="{{racer}}">
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-group">
+            <input type="text" id="skill-{{index}}" class="form-control" value="{{skill}}">
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-group">
+            <input type="text" id="type-{{index}}" class="form-control" value="{{type}}">
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="form-group">
+            <input type="text" id="successes-{{index}}" class="form-control" value="{{successes}}">
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-group">
+            <input type="text" id="advantages-{{index}}" class="form-control" value="{{advantages}}">
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-group">
+            <input type="text" id="triumphs-{{index}}" class="form-control" value="{{triumphs}}">
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="form-group">
+            <button type="button" class="btn btn-outline-primary" data-command="roll-initiative" data-index="{{index}}">
+                Roll initiative
+            </button>
+        </div>
+    </div>
+</div>
