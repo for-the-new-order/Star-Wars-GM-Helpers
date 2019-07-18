@@ -1,3 +1,4 @@
+import { InitiativeCharacterViewModel } from './InitiativeView/InitiativeViewModel';
 import { BatchCommandsView } from './BatchCommandsView';
 import * as express from 'express';
 import { AddressInfo } from 'net';
@@ -79,17 +80,10 @@ app.get('/initiative', function(req, res) {
     const viewModel: InitiativeViewModel = {
         model: {
             commandIdentifier: 'InitiativeView',
-            characters: [
-                {
-                    name: '',
-                    skill: '',
-                    type: 'NPC',
-                    successes: 0,
-                    advantages: 0,
-                    triumphs: 0
-                }
-            ],
-            discordInfo
+            characters: [createDefaultCharacter()],
+            discordInfo,
+            currentIndex: 0,
+            currentRound: 0
         }
     };
     res.render('initiative', viewModel);
@@ -97,10 +91,15 @@ app.get('/initiative', function(req, res) {
 
 //
 // Query/Ajax/partial rendering
-app.get('/partials/index-display-symbols-form', function(req, res) {
+app.get('/partials/race-pilot-row', function(req, res) {
     var racer = defaultRacer();
     var model = Object.assign({ layout: false, index: req.query.index }, racer);
     res.render('partials/racePilotRow', model);
+});
+app.get('/partials/initiative-row', function(req, res) {
+    var racer = createDefaultCharacter();
+    var model = Object.assign({ layout: false, index: req.query.index }, racer);
+    res.render('partials/initiativeRow', model);
 });
 
 //
@@ -143,6 +142,17 @@ function createDefaultRace(): RaceViewModel {
         parts: [new RacePart('Part 1'), new RacePart('Part 2'), new RacePart('Part 3'), new RacePart('Part 4'), new RacePart('Part 5')],
         racers: [defaultRacer()],
         discordInfo
+    };
+}
+
+function createDefaultCharacter(): InitiativeCharacterViewModel {
+    return {
+        name: '',
+        skill: '',
+        type: 'NPC',
+        successes: 0,
+        advantages: 0,
+        triumphs: 0
     };
 }
 

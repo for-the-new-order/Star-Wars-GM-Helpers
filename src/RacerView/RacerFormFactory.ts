@@ -12,7 +12,7 @@ export class RacerFormFactory {
         var me = this;
         me.logger.trace(`RacerFormFactory:loading:${index}`);
         $.ajax({
-            url: '/partials/index-display-symbols-form',
+            url: '/partials/race-pilot-row',
             method: 'GET',
             data: { index: index }
         }).done(function(data) {

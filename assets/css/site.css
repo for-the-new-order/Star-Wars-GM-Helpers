@@ -135,3 +135,7 @@
     padding-bottom: 15px;
     margin-bottom: 7px;
 }
+
+.row.active {
+    background-color: var(--blue);
+}

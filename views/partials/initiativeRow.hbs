@@ -1,41 +1,31 @@
-<div class="row mt-2" data-symbols-row="{{index}}">
+<div class="row mt-2 py-1" data-init-row="{{index}}">
     <div class="col-3">
-        <div class="form-group">
-            <input type="text" id="name-{{index}}" class="form-control" value="{{racer}}">
-        </div>
+        <input type="text" id="name-{{index}}" class="form-control" value="{{racer}}">
     </div>
     <div class="col-2">
-        <div class="form-group">
-            <input type="text" id="skill-{{index}}" class="form-control" value="{{skill}}">
-        </div>
+        <input type="text" id="skill-{{index}}" class="form-control" value="{{skill}}">
     </div>
     <div class="col-2">
-        <div class="form-group">
-            <input type="text" id="type-{{index}}" class="form-control" value="{{type}}">
-        </div>
+        <input type="text" id="type-{{index}}" class="form-control" value="{{type}}">
     </div>
 
     <div class="col-1">
-        <div class="form-group">
-            <input type="text" id="successes-{{index}}" class="form-control text-center" value="{{successes}}">
-        </div>
+        <input type="text" id="successes-{{index}}" class="form-control text-center" value="{{successes}}">
     </div>
     <div class="col-1">
-        <div class="form-group">
-            <input type="text" id="advantages-{{index}}" class="form-control text-center" value="{{advantages}}">
-        </div>
+        <input type="text" id="advantages-{{index}}" class="form-control text-center" value="{{advantages}}">
     </div>
     <div class="col-1">
-        <div class="form-group">
-            <input type="text" id="triumphs-{{index}}" class="form-control text-center" value="{{triumphs}}">
-        </div>
+        <input type="text" id="triumphs-{{index}}" class="form-control text-center" value="{{triumphs}}">
     </div>
 
     <div class="col-2">
-        <div class="form-group">
+        <div class="btn-group">
             <button type="button" class="btn btn-outline-primary" data-command="roll-initiative" data-index="{{index}}">
-                Roll initiative
+                Roll init
             </button>
+            <button type="button" class="btn btn-outline-danger" data-command="delete-row"
+                data-index="{{index}}">X</button>
         </div>
     </div>
 </div>
