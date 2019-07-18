@@ -16,6 +16,9 @@ export class InitiativeView extends BaseView<InitiativeView> implements View {
         this.logger.trace('InitiativeView loading');
         this.loadExistingRows();
         this.attachAddCharacter();
+
+        this.attachResetButton();
+
         this.attachDeleteOneCharacter();
         this.logger.trace('InitiativeView loaded');
     }
@@ -70,7 +73,19 @@ export class InitiativeView extends BaseView<InitiativeView> implements View {
         });
     }
 
-    private findRow(index: number): InitiativeRowAccessor {
+    private attachResetButton() {
+        var me = this;
+        $('[data-command="resetInit"]').on('click', function() {
+            if (confirm('Are you sure that you want to reset the page? All unsaved changes will be lost forever!')) {
+                me.logger.trace('Resetting the page');
+                location.assign('/initiative');
+            } else {
+                me.logger.info(`Page reset aborted by user.`);
+            }
+        });
+    }
+
+    private findAccessor(index: number): InitiativeRowAccessor {
         return this.rows.find(x => x.getIndex() == index);
     }
 }
