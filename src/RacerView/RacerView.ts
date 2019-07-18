@@ -1,14 +1,9 @@
-import { SaveRaceModel } from './SaveRaceModel';
 import { BaseView } from '../BaseView';
 import { View } from '../View';
-import { RacerRowAccessor, RacerFormFactory, RaceModel, RacerModel, RacePart } from '.';
+import { RacerRowAccessor, RacerFormFactory, RaceModel, RacerModel, RacePart, SaveRaceModel, RacePartAccessor, RacePartFactory } from '.';
 import { LoggerFactory, Logger } from '../Logging';
 import { DiscordInfo } from '../DiscordInfo';
-import { accessSync } from 'fs';
-import { RacePartAccessor } from './RacePartAccessor';
-import { RacePartFactory } from './RacePartFactory';
-import { RollService, DiceRollResult, DiceFaceEmojiConverter } from '../DiceRoller';
-import { RollServiceResult } from '../DiceRoller/RollService';
+import { RollService, RollServiceResult } from '../DiceRoller';
 import { MyDiscordBot } from '../MyDiscordBot';
 
 export class RacerView extends BaseView<RacerView> implements RaceModel, View {

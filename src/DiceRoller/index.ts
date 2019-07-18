@@ -5,6 +5,6 @@ export { Symbols } from './Symbols';
 export { DiceFaceEmojiConverter } from './DiceFaceEmojiConverter';
 export { FaceParser } from './FaceParser';
 export { DiceParser } from './DiceParser';
-export { RollService } from './RollService';
+export { RollService, RollServiceResult } from './RollService';
 export { ParserFactory } from './ParserFactory';
 export { GenesysParserFactory } from './GenesysParserFactory';
