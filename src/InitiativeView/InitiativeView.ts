@@ -6,6 +6,8 @@ import { InitiativeCharacterViewModel } from '.';
 
 export class InitiativeView extends BaseView<InitiativeView> implements View {
     private rows = new Array<InitiativeRowAccessor>();
+    private rowCount = 0;
+
     constructor(private loggerFactory: LoggerFactory, private discordInfo: DiscordInfo) {
         super(loggerFactory.create(InitiativeView));
     }
@@ -14,25 +16,30 @@ export class InitiativeView extends BaseView<InitiativeView> implements View {
         this.logger.trace('InitiativeView loading');
         this.loadExistingRows();
         this.attachAddCharacter();
+        this.attachDeleteOneCharacter();
         this.logger.trace('InitiativeView loaded');
     }
 
     private loadExistingRows() {
+        this.logger.trace('loadExistingRows');
         var me = this;
         $('[data-init-row]').each(function() {
             var rawIndex = $(this).attr('data-init-row');
             var index = parseInt(rawIndex);
             var row = new InitiativeRowAccessor(index, me.loggerFactory);
             me.rows.push(row);
+            me.rowCount++;
         });
     }
 
     private attachAddCharacter() {
-        const index = this.rows.length;
+        this.logger.trace('attachAddCharacter');
         var me = this;
         $('[data-command="addCharacter"]').on('click', function(e) {
-            me.logger.trace('Add Character clicked');
             e.preventDefault();
+            me.logger.trace('Add Character clicked');
+            const index = me.rowCount++;
+            const row = new InitiativeRowAccessor(index, me.loggerFactory);
             $.ajax({
                 url: '/partials/initiative-row',
                 method: 'GET',
@@ -42,11 +49,29 @@ export class InitiativeView extends BaseView<InitiativeView> implements View {
                 const $parent = $('#display-characters-card');
                 const $row = $(data);
                 $parent.append($row);
-                var row = new InitiativeRowAccessor(index, me.loggerFactory);
-                me.rows.push(row);
                 me.logger.trace(`Character row '${index}' added`);
             });
+            me.rows.push(row);
         });
+    }
+
+    private attachDeleteOneCharacter() {
+        this.logger.trace('attachDeleteOneCharacter');
+        const me = this;
+        $(document).on('click', '[data-command="delete-row"]', function(e) {
+            e.preventDefault();
+            var index = $(this).attr('data-index');
+            if (confirm('Are you sure that you want to delete this row?')) {
+                me.logger.trace(`Deleting the row '${index}'.`);
+                $(`[data-init-row="${index}"]`).remove();
+            } else {
+                me.logger.trace(`Deletion of row '${index}' aborted by the user.`);
+            }
+        });
+    }
+
+    private findRow(index: number): InitiativeRowAccessor {
+        return this.rows.find(x => x.getIndex() == index);
     }
 }
 
