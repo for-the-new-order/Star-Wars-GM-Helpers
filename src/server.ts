@@ -74,6 +74,13 @@ app.get('/batchCommands', function(req, res) {
         }
     });
 });
+app.get('/initiative', function(req, res) {
+    res.render('initiative', {
+        model: {
+            commandIdentifier: 'InitiativeView'
+        }
+    });
+});
 
 //
 // Query/Ajax/partial rendering
