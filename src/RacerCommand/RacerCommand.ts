@@ -40,7 +40,22 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
         this.attachLoadButton();
         this.attachRollRaceButtons();
         this.loadExistingParts();
+        this.attachRaceAllByTypeButton();
         this.logger.trace('RacerCommand loaded');
+    }
+
+    private attachRaceAllByTypeButton() {
+        var me = this;
+        $('#raceAllByType').on('click', async function() {
+            const expectedType = $('#raceAllByTypeValue').val();
+            const doNotFilter = expectedType === '';
+            for (let i = 0; i < me.racers.length; i++) {
+                var racer = me.findRacerRow(i);
+                if (doNotFilter || racer.type === expectedType) {
+                    await me.rollRaceCheck(i);
+                }
+            }
+        });
     }
 
     private findRacerRow(index: number): RacerRowAccessor {
@@ -145,22 +160,26 @@ export class RacerCommand extends BaseCommand<RacerCommand> implements RaceModel
             const rawIndex = $(this).attr('data-index');
             e.preventDefault();
             const index = parseInt(rawIndex);
-            const accessor = me.findRacerRow(index);
-            if (accessor) {
-                me.logger.trace(`Roll racing skill of index: ${index} | skill: ${accessor.skill}`);
-                var rollResult = me.raceService.roll(accessor, me.parts);
-                const resultingFaces = rollResult.flattenFaces();
-                me.logger.debug(`Resulting faces of '${resultingFaces}'.`);
-                var finalResult = rollResult.reduceRoll();
-                if (finalResult.success > 0) {
-                    me.raceService.updatePosition(accessor, me.parts);
-                }
-                await me.bot.sendRollResult(accessor, rollResult);
-                me.raceService.applyRoll(accessor, rollResult);
-            } else {
-                me.logger.warning(`The "racerFormAccessors[${index}]" does not exist.`);
-            }
+            await me.rollRaceCheck(index);
         });
+    }
+
+    private async rollRaceCheck(index: number) {
+        const accessor = this.findRacerRow(index);
+        if (accessor) {
+            this.logger.trace(`Roll racing skill of index: ${index} | skill: ${accessor.skill}`);
+            const rollResult = this.raceService.roll(accessor, this.parts);
+            const resultingFaces = rollResult.flattenFaces();
+            this.logger.debug(`Resulting faces of '${resultingFaces}'.`);
+            const finalResult = rollResult.reduceRoll();
+            if (finalResult.success > 0) {
+                this.raceService.updatePosition(accessor, this.parts);
+            }
+            await this.bot.sendRollResult(accessor, rollResult);
+            this.raceService.applyRoll(accessor, rollResult);
+        } else {
+            this.logger.warning(`The "racerFormAccessors[${index}]" does not exist.`);
+        }
     }
 
     private attachSortRaceButton() {
