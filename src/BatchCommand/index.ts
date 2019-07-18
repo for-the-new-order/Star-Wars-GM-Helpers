@@ -1,1 +1,0 @@
-export { BatchCommand } from './BatchCommand';

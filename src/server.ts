@@ -1,11 +1,11 @@
-import { BatchCommand } from './BatchCommand';
+import { BatchCommandsView } from './BatchCommandsView';
 import * as express from 'express';
 import { AddressInfo } from 'net';
 import { Message, Emoji, Collection } from 'discord.js';
 import { DiscordInfo } from './DiscordInfo';
 import * as exphbs from 'express-handlebars';
 import { config } from './config';
-import { RacePart, RaceModel, RacerModel, SaveRaceModel } from './RacerCommand';
+import { RacePart, RaceModel, RacerModel, SaveRaceModel } from './RacerView';
 import * as fs from 'fs';
 import * as util from 'util';
 import { MyDiscordBot } from './MyDiscordBot';
@@ -41,7 +41,7 @@ app.get('/', function(req, res) {
 });
 app.get('/race', async function(req, res) {
     const commandIdentifier = {
-        commandIdentifier: 'RacerCommand'
+        commandIdentifier: 'RacerView'
     };
     var raceModel = {
         parts: [new RacePart('Part 1'), new RacePart('Part 2'), new RacePart('Part 3'), new RacePart('Part 4'), new RacePart('Part 5')],
@@ -70,7 +70,7 @@ app.get('/race', async function(req, res) {
 app.get('/batchCommands', function(req, res) {
     res.render('batchCommands', {
         model: {
-            commandIdentifier: 'BatchCommand'
+            commandIdentifier: 'BatchCommandsView'
         }
     });
 });
@@ -94,7 +94,7 @@ app.get('/partials/index-display-symbols-form', function(req, res) {
 // Commands
 const loggerFactory = new LoggerFactory(new ServerSidePrependLogStrategy());
 app.post('/commands/batch', async function(req, res) {
-    const command = req.body as BatchCommand;
+    const command = req.body as BatchCommandsView;
     const discordInfo = req.body as DiscordInfo;
     const bot = new MyDiscordBot(discordInfo, loggerFactory);
     var result = await bot.sendBatchCommands(command);
@@ -126,7 +126,7 @@ function makeRaceFilePath(raceName: string): string {
 
 function createDefaultRace(): RaceViewModel {
     return {
-        commandIdentifier: 'RacerCommand',
+        commandIdentifier: 'RacerView',
         parts: [new RacePart('Part 1'), new RacePart('Part 2'), new RacePart('Part 3'), new RacePart('Part 4'), new RacePart('Part 5')],
         racers: [defaultRacer()],
         discordInfo

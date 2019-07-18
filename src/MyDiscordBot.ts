@@ -1,10 +1,10 @@
 import { Symbols } from './DiceRoller/Symbols';
-import { BatchCommand } from './BatchCommand';
+import { BatchCommandsView } from './BatchCommandsView';
 import { Client, TextChannel } from 'discord.js';
 import { DiscordInfo } from './DiscordInfo';
 import { TableRenderer } from './TableRenderer';
 import { config } from './config';
-import { RaceModel, RacerModel } from './RacerCommand';
+import { RaceModel, RacerModel } from './RacerView';
 import { SymbolsCount, RollServiceResult } from './DiceRoller/RollService';
 import { DiceFaceEmojiConverter } from './DiceRoller';
 import { LoggerFactory, Logger } from './Logging';
@@ -17,7 +17,7 @@ export class MyDiscordBot {
         this.logger = loggerFactory.create(MyDiscordBot);
     }
 
-    public async sendBatchCommands(command: BatchCommand): Promise<number> {
+    public async sendBatchCommands(command: BatchCommandsView): Promise<number> {
         await this.enforceClient();
         const channel = this.client.channels.get(this.discordInfo.channelId) as TextChannel;
         command.chatCommands.forEach(async message => {
