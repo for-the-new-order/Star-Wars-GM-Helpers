@@ -359,8 +359,18 @@ export class RaceService {
 
     public roll(model: RacerModel, parts: RacePart[]): RollServiceResult {
         if (model.skill) {
-            var dicesToRoll = model.skill;
             this.logger.trace(`Add '${model.racer}' skill of '${model.skill}'.`);
+            var dicesToRoll = model.skill;
+
+            if (model.handling) {
+                this.logger.trace(`Add '${model.vehicle}' handling of '${model.handling}'.`);
+                if (model.handling > 0) {
+                    dicesToRoll += ''.padEnd(model.handling, 'b');
+                } else if (model.handling < 0) {
+                    const negativeHandling = Math.abs(model.handling);
+                    dicesToRoll += ''.padEnd(negativeHandling, 'k');
+                }
+            }
 
             var currentPart = parts[model.part];
             dicesToRoll += currentPart.difficulty;
