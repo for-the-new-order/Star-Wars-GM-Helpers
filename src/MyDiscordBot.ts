@@ -63,14 +63,19 @@ export class MyDiscordBot {
 
         var finalResult = rollResult.reduceRoll();
         const converter = new DiceFaceEmojiConverter(this);
-        let message = `**${model.racer}** (${model.type}) [Part: ${model.part} | Lap: ${model.lap}] rolled `;
+        let message = `[Part: ${model.part} | Lap: ${model.lap}] (${model.type})`;
+        message += ` **${model.racer}**`;
+        if (model.vehicle) {
+            message += ` on board **${model.vehicle}**`;
+        }
+        message += ' rolled ';
         for (let i = 0; i < rollResult.dices.length; i++) {
             const dice = rollResult.dices[i];
             const diceIcon = await converter.convertRollToEmoji(dice);
             message += diceIcon;
         }
 
-        message += ' for a final result of ';
+        message += '(';
         if (finalResult.success > 0) {
             message += await converter.convertSymbolToEmoji(Symbols.Success);
             message += `${finalResult.success} `;
@@ -103,6 +108,7 @@ export class MyDiscordBot {
             message += await converter.convertSymbolToEmoji(Symbols.DarkSide);
             message += `${finalResult.darkSide} `;
         }
+        message += ')';
         this.logger.trace(`message: ${message}`);
         const channel = this.client.channels.get(this.discordInfo.channelId) as TextChannel;
         await channel.send(message);
