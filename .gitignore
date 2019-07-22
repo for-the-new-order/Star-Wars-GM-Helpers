@@ -66,6 +66,7 @@ config.secrets.json
 # Generated JS files
 src/**/*.js
 src/**/*.js.map
+assets/js/public.js
 
 # Saved races
 assets/races/*.json
