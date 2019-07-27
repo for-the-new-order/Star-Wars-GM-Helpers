@@ -111,9 +111,9 @@ export class MyDiscordBot {
         const converter = new DiceFaceEmojiConverter(this);
         let message = `[${model.type}]`;
         message += ` **${model.racer}**`;
-        // if (model.vehicle) {
-        //     message += `, on board **${model.vehicle}**,`;
-        // }
+        if (model.vehicle) {
+            message += `, on board **${model.vehicle}**,`;
+        }
         message += ' rolled an init check of ';
         message = await this.addDiceFaces(rollResult, converter, message);
 
