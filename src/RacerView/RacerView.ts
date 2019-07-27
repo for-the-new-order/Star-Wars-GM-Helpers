@@ -27,6 +27,7 @@ export class RacerView extends BaseView<RacerView> implements RaceModel, View {
         this.attachAddRacerButton();
         this.attachSortInitButton();
         this.attachSortRaceButton();
+        this.attachSortChaseButton();
         this.attachResolveAllNegativeSymbolsButton();
         this.attachResolveOneNegativeSymbolsButtons();
         this.attachRemoveRowButtons();
@@ -37,7 +38,19 @@ export class RacerView extends BaseView<RacerView> implements RaceModel, View {
         this.attachRollRaceButtons();
         this.loadExistingParts();
         this.attachRaceAllByTypeButton();
+        this.attachChaseAllByTypeButton();
+        this.attachResetSymbols();
         this.logger.trace('RacerView loaded');
+    }
+
+    private attachResetSymbols() {
+        var me = this;
+        $('#resetSymbols').on('click', async function() {
+            for (let i = 0; i < me.racers.length; i++) {
+                var racer = me.findRacerRow(i);
+                me.raceService.resetSymbols(racer);
+            }
+        });
     }
 
     private attachRaceAllByTypeButton() {
@@ -49,6 +62,20 @@ export class RacerView extends BaseView<RacerView> implements RaceModel, View {
                 var racer = me.findRacerRow(i);
                 if (doNotFilter || racer.type === expectedType) {
                     await me.rollRaceCheck(i);
+                }
+            }
+        });
+    }
+
+    private attachChaseAllByTypeButton() {
+        var me = this;
+        $('#chaseAllByType').on('click', async function() {
+            const expectedType = $('#chaseAllByTypeValue').val();
+            const doNotFilter = expectedType === '';
+            for (let i = 0; i < me.racers.length; i++) {
+                var racer = me.findRacerRow(i);
+                if (doNotFilter || racer.type === expectedType) {
+                    await me.rollChaseCheck(i);
                 }
             }
         });
@@ -164,14 +191,30 @@ export class RacerView extends BaseView<RacerView> implements RaceModel, View {
         const accessor = this.findRacerRow(index);
         if (accessor) {
             this.logger.trace(`Roll racing skill of index: ${index} | skill: ${accessor.skill}`);
-            const rollResult = this.raceService.roll(accessor, this.parts);
+            const rollResult = this.raceService.rollRace(accessor, this.parts);
             const resultingFaces = rollResult.flattenFaces();
             this.logger.debug(`Resulting faces of '${resultingFaces}'.`);
             const finalResult = rollResult.reduceRoll();
             if (finalResult.success > 0) {
                 this.raceService.updatePosition(accessor, this.parts);
             }
-            await this.bot.sendRollResult(accessor, rollResult);
+            await this.bot.sendRaceRollResult(accessor, rollResult);
+            this.raceService.applyRoll(accessor, rollResult);
+        } else {
+            this.logger.warning(`The "racerFormAccessors[${index}]" does not exist.`);
+        }
+    }
+
+    private async rollChaseCheck(index: number) {
+        const accessor = this.findRacerRow(index);
+        if (accessor) {
+            this.logger.trace(`Rolling chase check of index: ${index}`);
+            this.raceService.resetSymbols(accessor);
+            const chaseDifficulty = this.parts[0].difficulty;
+            const rollResult = this.raceService.rollChase(accessor, chaseDifficulty);
+            const resultingFaces = rollResult.flattenFaces();
+            this.logger.debug(`Resulting faces of '${resultingFaces}'.`);
+            await this.bot.sendChaseRollResult(accessor, rollResult);
             this.raceService.applyRoll(accessor, rollResult);
         } else {
             this.logger.warning(`The "racerFormAccessors[${index}]" does not exist.`);
@@ -189,9 +232,25 @@ export class RacerView extends BaseView<RacerView> implements RaceModel, View {
                         me.sortCompound(a.lap, b.lap) ||
                         me.sortCompound(a.part, b.part) ||
                         me.sortCompound(a.successes - a.failures, b.successes - b.failures) ||
-                        me.sortCompound(a.advantages - a.threats, b.advantages - b.threats) ||
+                        me.sortCompound(a.triumphs - a.despairs, b.triumphs - b.despairs) ||
+                        me.sortCompound(a.advantages - a.threats, b.advantages - b.threats)
+                )
+                .reverse();
+            me.reorderRows();
+        });
+    }
+
+    private attachSortChaseButton() {
+        const me = this;
+        $('#sortChase').on('click', function(e) {
+            me.logger.trace('sortChase:clicked');
+            e.preventDefault();
+            me.racerFormAccessors = me.racerFormAccessors
+                .sort(
+                    (a, b) =>
+                        me.sortCompound(a.successes, b.successes) ||
                         me.sortCompound(a.triumphs, b.triumphs) ||
-                        me.sortCompound(b.despairs, a.despairs)
+                        me.sortCompound(a.advantages, b.advantages)
                 )
                 .reverse();
             me.reorderRows();
@@ -357,20 +416,41 @@ export class RaceService {
         model.threats = threats;
     }
 
-    public roll(model: RacerModel, parts: RacePart[]): RollServiceResult {
+    public rollChase(model: RacerModel, modifier: string): RollServiceResult {
         if (model.skill) {
-            this.logger.trace(`Add '${model.racer}' skill of '${model.skill}'.`);
-            var dicesToRoll = model.skill;
+            var dicesToRoll = this.getSkill(model);
 
-            if (model.handling) {
-                this.logger.trace(`Add '${model.vehicle}' handling of '${model.handling}'.`);
-                if (model.handling > 0) {
-                    dicesToRoll += ''.padEnd(model.handling, 'b');
-                } else if (model.handling < 0) {
-                    const negativeHandling = Math.abs(model.handling);
-                    dicesToRoll += ''.padEnd(negativeHandling, 'k');
-                }
+            const speed = model.currentSpeed;
+            const silhouette = model.silhouette;
+            this.logger.trace(`Computing difficulty based on speed: '${speed}' | silhouette: '${silhouette}'.`);
+
+            if (speed && silhouette && speed > 0 && silhouette > 0) {
+                const base = Math.max(speed, silhouette);
+                const reds = Math.min(speed, silhouette);
+                const purples = base - reds;
+                const difficulty = ''.padEnd(reds, 'r') + ''.padEnd(purples, 'p');
+                dicesToRoll += difficulty;
+                this.logger.trace(
+                    `Add base difficulty of '${base}' with '${reds}' red dices and ${purples} purples dices for a roll adjustment of '${difficulty}'.`
+                );
+
+                dicesToRoll += modifier;
+                this.logger.trace(`Add modifier of '${modifier}'.`);
+
+                this.logger.info(`Rolling '${dicesToRoll}'.`);
+                var rollResult = this.rollService.roll(dicesToRoll);
+                return rollResult;
             }
+            this.logger.warning('The speed and the silhouette must be greater than 0 to chase.');
+            return null;
+        }
+        this.logger.warning('No skill to roll');
+        return null;
+    }
+
+    public rollRace(model: RacerModel, parts: RacePart[]): RollServiceResult {
+        if (model.skill) {
+            var dicesToRoll = this.getSkill(model);
 
             var currentPart = parts[model.part];
             dicesToRoll += currentPart.difficulty;
@@ -382,6 +462,21 @@ export class RaceService {
         }
         this.logger.warning('No skill to roll');
         return null;
+    }
+
+    private getSkill(model: RacerModel) {
+        this.logger.trace(`Add '${model.racer}' skill of '${model.skill}'.`);
+        var dicesToRoll = model.skill;
+        if (model.handling) {
+            this.logger.trace(`Add '${model.vehicle}' handling of '${model.handling}'.`);
+            if (model.handling > 0) {
+                dicesToRoll += ''.padEnd(model.handling, 'b');
+            } else if (model.handling < 0) {
+                const negativeHandling = Math.abs(model.handling);
+                dicesToRoll += ''.padEnd(negativeHandling, 'k');
+            }
+        }
+        return dicesToRoll;
     }
 
     public applyRoll(model: RacerModel, diceRolled: RollServiceResult): void {
@@ -423,5 +518,15 @@ export class RaceService {
             model.part = 0;
             model.lap += 1;
         }
+    }
+
+    public resetSymbols(model: RacerModel) {
+        this.logger.trace(`Resetting symbols of: ${model.racer}`);
+        model.successes = 0;
+        model.advantages = 0;
+        model.triumphs = 0;
+        model.failures = 0;
+        model.threats = 0;
+        model.despairs = 0;
     }
 }

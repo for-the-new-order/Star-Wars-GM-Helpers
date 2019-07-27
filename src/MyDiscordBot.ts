@@ -58,7 +58,32 @@ export class MyDiscordBot {
         return table.build();
     }
 
-    public async sendRollResult(model: RacerModel, rollResult: RollServiceResult) {
+    public async sendChaseRollResult(model: RacerModel, rollResult: RollServiceResult) {
+        await this.enforceClient();
+
+        var finalResult = rollResult.reduceRoll();
+        const converter = new DiceFaceEmojiConverter(this);
+        let message = `[${model.type}]`;
+        message += ` **${model.racer}**`;
+        if (model.vehicle) {
+            message += `, on board **${model.vehicle}**,`;
+        }
+        message += ' rolled ';
+        message = await this.addDiceFaces(rollResult, converter, message);
+
+        message += '(';
+        message = await this.addComputedSymbols(finalResult, message, converter);
+        message += ')';
+
+        message += ' - ';
+        message += finalResult.success > 0 ? 'SUCCESS' : 'FAILURE';
+
+        this.logger.trace(`message: ${message}`);
+        const channel = this.client.channels.get(this.discordInfo.channelId) as TextChannel;
+        await channel.send(message);
+    }
+
+    public async sendRaceRollResult(model: RacerModel, rollResult: RollServiceResult) {
         await this.enforceClient();
 
         var finalResult = rollResult.reduceRoll();
@@ -69,13 +94,17 @@ export class MyDiscordBot {
             message += ` on board **${model.vehicle}**`;
         }
         message += ' rolled ';
-        for (let i = 0; i < rollResult.dices.length; i++) {
-            const dice = rollResult.dices[i];
-            const diceIcon = await converter.convertRollToEmoji(dice);
-            message += diceIcon;
-        }
+        message = await this.addDiceFaces(rollResult, converter, message);
 
         message += '(';
+        message = await this.addComputedSymbols(finalResult, message, converter);
+        message += ')';
+        this.logger.trace(`message: ${message}`);
+        const channel = this.client.channels.get(this.discordInfo.channelId) as TextChannel;
+        await channel.send(message);
+    }
+
+    private async addComputedSymbols(finalResult: SymbolsCount, message: string, converter: DiceFaceEmojiConverter) {
         if (finalResult.success > 0) {
             message += await converter.convertSymbolToEmoji(Symbols.Success);
             message += `${finalResult.success} `;
@@ -108,10 +137,16 @@ export class MyDiscordBot {
             message += await converter.convertSymbolToEmoji(Symbols.DarkSide);
             message += `${finalResult.darkSide} `;
         }
-        message += ')';
-        this.logger.trace(`message: ${message}`);
-        const channel = this.client.channels.get(this.discordInfo.channelId) as TextChannel;
-        await channel.send(message);
+        return message;
+    }
+
+    private async addDiceFaces(rollResult: RollServiceResult, converter: DiceFaceEmojiConverter, message: string) {
+        for (let i = 0; i < rollResult.dices.length; i++) {
+            const dice = rollResult.dices[i];
+            const diceIcon = await converter.convertRollToEmoji(dice);
+            message += diceIcon;
+        }
+        return message;
     }
 
     public async findEmojiString(name: string): Promise<string> {
