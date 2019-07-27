@@ -48,12 +48,13 @@ export class RacerView extends BaseView<RacerView> implements RaceModel, View {
         var me = this;
         $('#rollInit').on('click', async function() {
             for (let i = 0; i < me.racers.length; i++) {
-                var racer = me.findRacerRow(i);
-                const initRollResult = me.raceService.rollInit(racer);
+                var character = me.findRacerRow(i);
+                const initRollResult = me.raceService.rollInit(character);
                 const resultingFaces = initRollResult.flattenFaces();
                 me.logger.debug(`Resulting faces of '${resultingFaces}'.`);
-                me.raceService.applyRoll(racer, initRollResult);
-                await me.bot.sendInitRollResult(racer, initRollResult);
+                me.raceService.resetSymbols(character);
+                me.raceService.applyRoll(character, initRollResult);
+                await me.bot.sendInitRollResult(character, initRollResult);
             }
         });
     }
