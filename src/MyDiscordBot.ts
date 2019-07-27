@@ -104,6 +104,28 @@ export class MyDiscordBot {
         await channel.send(message);
     }
 
+    public async sendInitRollResult(model: RacerModel, rollResult: RollServiceResult) {
+        await this.enforceClient();
+
+        var finalResult = rollResult.reduceRoll();
+        const converter = new DiceFaceEmojiConverter(this);
+        let message = `[${model.type}]`;
+        message += ` **${model.racer}**`;
+        // if (model.vehicle) {
+        //     message += `, on board **${model.vehicle}**,`;
+        // }
+        message += ' rolled an init check of ';
+        message = await this.addDiceFaces(rollResult, converter, message);
+
+        message += '(';
+        message = await this.addComputedSymbols(finalResult, message, converter);
+        message += ')';
+
+        this.logger.trace(`message: ${message}`);
+        const channel = this.client.channels.get(this.discordInfo.channelId) as TextChannel;
+        await channel.send(message);
+    }
+
     private async addComputedSymbols(finalResult: SymbolsCount, message: string, converter: DiceFaceEmojiConverter) {
         if (finalResult.success > 0) {
             message += await converter.convertSymbolToEmoji(Symbols.Success);

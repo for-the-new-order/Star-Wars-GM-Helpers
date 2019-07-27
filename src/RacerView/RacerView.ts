@@ -40,7 +40,22 @@ export class RacerView extends BaseView<RacerView> implements RaceModel, View {
         this.attachRaceAllByTypeButton();
         this.attachChaseAllByTypeButton();
         this.attachResetSymbols();
+        this.attachRollInit();
         this.logger.trace('RacerView loaded');
+    }
+
+    private attachRollInit() {
+        var me = this;
+        $('#rollInit').on('click', async function() {
+            for (let i = 0; i < me.racers.length; i++) {
+                var racer = me.findRacerRow(i);
+                const initRollResult = me.raceService.rollInit(racer);
+                const resultingFaces = initRollResult.flattenFaces();
+                me.logger.debug(`Resulting faces of '${resultingFaces}'.`);
+                me.raceService.applyRoll(racer, initRollResult);
+                await me.bot.sendInitRollResult(racer, initRollResult);
+            }
+        });
     }
 
     private attachResetSymbols() {
@@ -528,5 +543,15 @@ export class RaceService {
         model.failures = 0;
         model.threats = 0;
         model.despairs = 0;
+    }
+
+    public rollInit(model: RacerModel) {
+        if (model.skill) {
+            this.logger.trace(`Rolling init of '${model.racer}' with skill of '${model.skill}'.`);
+            var rollResult = this.rollService.roll(model.skill);
+            return rollResult;
+        }
+        this.logger.warning('No skill to roll');
+        return null;
     }
 }
