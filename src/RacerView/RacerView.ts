@@ -437,7 +437,7 @@ export class RaceService {
             var dicesToRoll = this.getSkill(model);
 
             const speed = model.currentSpeed;
-            const silhouette = model.silhouette;
+            const silhouette = Math.ceil(model.silhouette / 2.0);
             this.logger.trace(`Computing difficulty based on speed: '${speed}' | silhouette: '${silhouette}'.`);
 
             if (speed && silhouette && speed > 0 && silhouette > 0) {
