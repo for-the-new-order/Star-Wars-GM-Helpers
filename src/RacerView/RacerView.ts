@@ -104,7 +104,12 @@ export class RacerView extends BaseView<RacerView> implements RaceModel, View {
     private attachSaveButton() {
         var me = this;
         $('#saveRace').on('click', function() {
-            const name = prompt('Enter the race name');
+            let name: string;
+            if (me.isRaceLoaded()) {
+                name = me.getLoadedRaceName();
+            } else {
+                name = prompt('Enter the race name');
+            }
             if (name) {
                 const race = me.createRaceModel();
                 const data = {
@@ -125,22 +130,50 @@ export class RacerView extends BaseView<RacerView> implements RaceModel, View {
                 }).done(function(msg) {
                     me.logger.info(msg);
                     me.logger.trace(`Race '${name}' saved.`);
+                    if (!me.isRaceLoaded()) {
+                        me.loadRace(name);
+                    }
                 });
             } else {
                 me.logger.info('Saving race aborted by the user.');
             }
         });
     }
+
     private attachLoadButton() {
         var me = this;
         $('#loadRace').on('click', function() {
             const name = prompt('Race name');
             if (name) {
-                location.assign(`/race?race=${name}`);
+                me.loadRace(name);
             } else {
                 me.logger.info('Save race aborted by the user.');
             }
         });
+    }
+
+    private loadRace(name: string): void {
+        location.assign(this.getRaceUri(name));
+    }
+
+    private getRaceUri(name: string): string {
+        return `/race?race=${name}`;
+    }
+
+    private isRaceLoaded(): boolean {
+        if (location.href == location.pathname) {
+            return false;
+        }
+        var nameIndex = location.href.lastIndexOf('=');
+        if (location.href.substring(0, nameIndex).endsWith('/race?race')) {
+            return true;
+        }
+        return false;
+    }
+
+    private getLoadedRaceName(): string {
+        var nameIndex = location.href.lastIndexOf('=');
+        return location.href.substring(nameIndex + 1);
     }
 
     private attachResetButton() {
@@ -211,11 +244,11 @@ export class RacerView extends BaseView<RacerView> implements RaceModel, View {
             const resultingFaces = rollResult.flattenFaces();
             this.logger.debug(`Resulting faces of '${resultingFaces}'.`);
             const finalResult = rollResult.reduceRoll();
+            this.raceService.applyRoll(accessor, rollResult);
             if (finalResult.success > 0) {
                 this.raceService.updatePosition(accessor, this.parts);
             }
             await this.bot.sendRaceRollResult(accessor, rollResult);
-            this.raceService.applyRoll(accessor, rollResult);
         } else {
             this.logger.warning(`The "racerFormAccessors[${index}]" does not exist.`);
         }
@@ -495,6 +528,7 @@ export class RaceService {
         return dicesToRoll;
     }
 
+    private speedBasedUpdate: boolean = true;
     public applyRoll(model: RacerModel, diceRolled: RollServiceResult): void {
         var rawSymbols = diceRolled.countSymbols();
         var symbols = diceRolled.reduceRoll();
@@ -503,6 +537,9 @@ export class RaceService {
 
         if (symbols.success !== 0) {
             model.successes += symbols.success;
+            if (this.speedBasedUpdate) {
+                model.successes += model.currentSpeed;
+            }
         }
         if (symbols.advantage !== 0) {
             model.advantages += symbols.advantage;

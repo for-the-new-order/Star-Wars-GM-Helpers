@@ -39,12 +39,13 @@ export class MyDiscordBot {
 
     private makeMessage(command: RaceModel): string {
         var table = new TableRenderer();
-        table.setHeader(['#', 'Racer', 'P/L', 'Successes', 'Advantages', 'Triumphs', 'Failures', 'Threats', 'Despairs']);
+        table.setHeader(['#', 'Racer', 'Vehicle', 'P/L', 'Successes', 'Advantages', 'Triumphs', 'Failures', 'Threats', 'Despairs']);
         if (command.racers) {
             command.racers.forEach((row, index) => {
                 table.addRow([
                     (index + 1).toString(),
                     `${row.racer} (${row.type})`,
+                    row.vehicle,
                     `${row.part}/${row.lap}`,
                     row.successes.toString(),
                     row.advantages.toString(),
