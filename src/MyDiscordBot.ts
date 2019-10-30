@@ -84,17 +84,36 @@ export class MyDiscordBot {
         await channel.send(message);
     }
 
-    public async sendRaceRollResult(model: RacerModel, rollResult: RollServiceResult) {
+    public async sendRaceError(model: RacerModel, error: string) {
         await this.enforceClient();
 
-        var finalResult = rollResult.reduceRoll();
-        const converter = new DiceFaceEmojiConverter(this);
         let message = `[Part: ${model.part} | Lap: ${model.lap}] (${model.type})`;
         message += ` **${model.racer}**`;
         if (model.vehicle) {
             message += ` on board **${model.vehicle}**`;
         }
-        message += ' rolled ';
+        message += ' | ' + error;
+        this.logger.trace(`message: ${message}`);
+
+        const channel = this.client.channels.get(this.discordInfo.channelId) as TextChannel;
+        await channel.send(message);
+    }
+
+    public async sendRaceRollResult(model: RacerModel, rollResult: RollServiceResult) {
+        await this.enforceClient();
+
+        var finalResult = rollResult.reduceRoll();
+        finalResult.speed = model.currentSpeed;
+        const converter = new DiceFaceEmojiConverter(this);
+        let message = `[Part: ${model.part} | Lap: ${model.lap}] (${model.type})`;
+        message += ` **${model.racer}**`;
+        if (model.vehicle) {
+            message += ` on board **${model.vehicle}**, at speed **${model.currentSpeed}**,`;
+        }
+
+        message += finalResult.success > 0 ? ' **succeeded**' : ' **failed**';
+
+        message += ' with a roll of ';
         message = await this.addDiceFaces(rollResult, converter, message);
 
         message += '(';
@@ -130,7 +149,11 @@ export class MyDiscordBot {
     private async addComputedSymbols(finalResult: SymbolsCount, message: string, converter: DiceFaceEmojiConverter) {
         if (finalResult.success > 0) {
             message += await converter.convertSymbolToEmoji(Symbols.Success);
-            message += `${finalResult.success} `;
+            message += finalResult.success;
+            if (finalResult.speed) {
+                message += `[+${finalResult.speed}]`;
+            }
+            message += ' ';
         }
         if (finalResult.advantage > 0) {
             message += await converter.convertSymbolToEmoji(Symbols.Advantage);

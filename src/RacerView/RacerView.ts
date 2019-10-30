@@ -239,16 +239,21 @@ export class RacerView extends BaseView<RacerView> implements RaceModel, View {
     private async rollRaceCheck(index: number) {
         const accessor = this.findRacerRow(index);
         if (accessor) {
-            this.logger.trace(`Roll racing skill of index: ${index} | skill: ${accessor.skill}`);
-            const rollResult = this.raceService.rollRace(accessor, this.parts);
-            const resultingFaces = rollResult.flattenFaces();
-            this.logger.debug(`Resulting faces of '${resultingFaces}'.`);
-            const finalResult = rollResult.reduceRoll();
-            this.raceService.applyRoll(accessor, rollResult);
-            if (finalResult.success > 0) {
-                this.raceService.updatePosition(accessor, this.parts);
+            try {
+                this.logger.trace(`Roll racing skill of index: ${index} | skill: ${accessor.skill}`);
+                const rollResult = this.raceService.rollRace(accessor, this.parts);
+                const resultingFaces = rollResult.flattenFaces();
+                this.logger.debug(`Resulting faces of '${resultingFaces}'.`);
+                const finalResult = rollResult.reduceRoll();
+                this.raceService.applyRoll(accessor, rollResult);
+                if (finalResult.success > 0) {
+                    this.raceService.updatePosition(accessor, this.parts);
+                }
+                await this.bot.sendRaceRollResult(accessor, rollResult);
+            } catch (error) {
+                this.logger.warning(error);
+                await this.bot.sendRaceError(accessor, error);
             }
-            await this.bot.sendRaceRollResult(accessor, rollResult);
         } else {
             this.logger.warning(`The "racerFormAccessors[${index}]" does not exist.`);
         }
@@ -497,13 +502,32 @@ export class RaceService {
         return null;
     }
 
+    private addRaceSpeedDifficulty = true;
+    private addRaceSilhouetteDifficulty = false;
+
     public rollRace(model: RacerModel, parts: RacePart[]): RollServiceResult {
+        if (model.currentSpeed == 0) {
+            throw 'Cannot race when stopped (speed: 0)';
+        }
         if (model.skill) {
             var dicesToRoll = this.getSkill(model);
 
             var currentPart = parts[model.part];
             dicesToRoll += currentPart.difficulty;
             this.logger.trace(`Add '${currentPart.name}' difficulty of '${currentPart.difficulty}'.`);
+
+            if (this.addRaceSpeedDifficulty) {
+                dicesToRoll += ''.padEnd(model.currentSpeed, 'k');
+                this.logger.trace(`Add speed '${model.currentSpeed}' to the difficulty.`);
+            } else {
+                this.logger.trace('Skipping speed difficulty.');
+            }
+
+            if (this.addRaceSilhouetteDifficulty) {
+                throw 'This feature is not implemented.';
+            } else {
+                this.logger.trace('Skipping silhouette difficulty.');
+            }
 
             this.logger.info(`Rolling '${dicesToRoll}'.`);
             var rollResult = this.rollService.roll(dicesToRoll);

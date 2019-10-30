@@ -80,4 +80,5 @@ export interface SymbolsCount {
     despair: number;
     lightSide: number;
     darkSide: number;
+    speed?: number;
 }
