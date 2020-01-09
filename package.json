@@ -19,7 +19,7 @@
     "discord.js": "^11.3.2",
     "express": "^4.16.3",
     "express-handlebars": "^3.1.0",
-    "handlebars": "^4.1.2",
+    "handlebars": "^4.3.0",
     "random-js": "^2.1.0"
   },
   "devDependencies": {
