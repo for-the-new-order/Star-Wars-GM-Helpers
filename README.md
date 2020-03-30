@@ -4,4 +4,4 @@ Some experimental user interfaces that connect to Discord using bots to help GM 
 
 ## How to locally start?
 
-Just run `npm run dev` in a terminal.
+Just run `npm run start` in a terminal.
